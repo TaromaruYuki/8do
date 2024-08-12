@@ -8,6 +8,13 @@ namespace EightDo {
 			Write
 		};
 
+		enum struct State {
+			Reset,
+			Fetch,
+			Execute,
+			Halt
+		};
+
 		struct MapperValue {
 			uint8_t value : 2;
 		};
@@ -17,16 +24,10 @@ namespace EightDo {
 			uint8_t data = 0x00;
 			ReadWrite rw = ReadWrite::Read;
 			MapperValue mapper;
+			bool bus_enable = true;
 		};
 
 	private:
-		enum struct State {
-			Reset,
-			Fetch,
-			Execute,
-			Halt
-		};
-
 		enum struct AddressingModes {
 			Immediate,
 			Absolute,
@@ -71,12 +72,13 @@ namespace EightDo {
 		uint8_t opcode = 0;	           // Current Opcode
 		
 	public:
-		CPU() { this->reset(); };
-		void reset();
+		CPU(Pins* pins) { this->reset(pins); };
+		void reset(Pins* pins);
 		void cycle(Pins* pins);
+		State get_state() const { return this->state; };
 
 	private:
-		void finish() { this->cycleCount = -1; };
+		void finish(Pins* pins) { this->cycleCount = -1; pins->bus_enable = false; };
 		uint8_t& DecodeRegister(uint8_t reg);
 
 		void reset_state_handler(Pins* pins);
@@ -107,10 +109,12 @@ namespace EightDo {
 		void SBR(Pins* pins, AddressingModes addressing_mode);
 		void ROL(Pins* pins, AddressingModes addressing_mode);
 		void ROR(Pins* pins, AddressingModes addressing_mode);
-		void CLC();
+		void CLC(Pins* pins);
 		void INC(Pins* pins, AddressingModes addressing_mode);
 		void DEC(Pins* pins, AddressingModes addressing_mode);
-		void HLT();
+		void HLT(Pins* pins);
 		void CMP(Pins* pins, AddressingModes addressing_mode);
+		void LDO(Pins* pins);
+		void NOP(Pins* pins);
 	};
 }

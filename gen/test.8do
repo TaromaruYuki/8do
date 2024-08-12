@@ -1,20 +1,21 @@
-; $0100: Factor2 / Result Hi
-; $0101: Result Lo
-
 .ORG $0000
 
 jump_table: .WORD $0200
 
+.ORG $0100
+
+str: .ASCIIZ "Hello, World!"
+
 .ORG $0200
 
 main:
-	LDR RA, 0x01
-	LDR RB, 0x01
+	LDR RO, 0x0
 loop:
-	CMP RB, 0x2
+	LDO RA, str
+	STR RA, $A000
+	CMP RA, 0x00
 	BIZ end
-	ADD RA, RA
-	ADD RB, 0x01
+	INC RO
 	JMP loop
 end:
 	HLT

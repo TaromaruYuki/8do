@@ -1,7 +1,7 @@
 #include <8do/cpu.hpp>
 #include <iostream>
 
-void EightDo::CPU::reset() {
+void EightDo::CPU::reset(Pins* pins) {
 	this->ra = 0;
 	this->rb = 0;
 	this->rc = 0;
@@ -16,6 +16,11 @@ void EightDo::CPU::reset() {
 
 	this->state = State::Reset;
 	this->cycleCount = 0;
+
+	pins->address = 0;
+	pins->data = 0;
+	pins->bus_enable = true;
+	pins->rw = ReadWrite::Read;
 }
 
 void EightDo::CPU::cycle(Pins* pins) {
@@ -53,7 +58,7 @@ void EightDo::CPU::reset_state_handler(Pins* pins) {
 			this->pc = this->temp16;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 			break;
 	}
 }
@@ -63,6 +68,7 @@ void EightDo::CPU::fetch_state_handler(Pins* pins) {
 		case 0:
 			pins->address = this->pc;
 			pins->rw = ReadWrite::Read;
+			pins->bus_enable = true;
 			break;
 		case 1:
 			this->opcode = pins->data;
@@ -74,12 +80,14 @@ void EightDo::CPU::fetch_state_handler(Pins* pins) {
 			this->pc++;
 
 			this->state = State::Execute;
-			this->finish();
+			this->finish(pins);
 			break;
 	}
 }
 
 void EightDo::CPU::execute_state_handler(Pins* pins) {
+	pins->bus_enable = true;
+
 	switch(this->opcode) {
 		case 0x2B: LDR(pins, AddressingModes::Immediate); break;
 		case 0x23: LDR(pins, AddressingModes::Absolute); break;
@@ -112,15 +120,17 @@ void EightDo::CPU::execute_state_handler(Pins* pins) {
 		case 0x3F: ROL(pins, AddressingModes::Register); break;
 		case 0x54: ROR(pins, AddressingModes::Absolute); break;
 		case 0x45: ROR(pins, AddressingModes::Register); break;
-		case 0xD2: CLC(); break;
+		case 0xD2: CLC(pins); break;
 		case 0x3B: INC(pins, AddressingModes::Absolute); break;
 		case 0x2C: INC(pins, AddressingModes::Register); break;
 		case 0x0D: DEC(pins, AddressingModes::Absolute); break;
 		case 0x1E: DEC(pins, AddressingModes::Register); break;
-		case 0xE8: HLT(); break;
+		case 0xE8: HLT(pins); break;
 		case 0x29: CMP(pins, AddressingModes::Immediate); break;
 		case 0x21: CMP(pins, AddressingModes::Absolute); break;
 		case 0x32: CMP(pins, AddressingModes::Register); break;
+		case 0xDF: LDO(pins); break;
+		case 0x00: NOP(pins); break;
 		default: {
 			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc << std::endl;
 
@@ -174,9 +184,12 @@ void EightDo::CPU::jump_if_flag(Pins* pins, bool flag) {
 			if(flag) {
 				this->pc = this->temp16;
 			}
+			else {
+				this->pc++;
+			}
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -201,7 +214,7 @@ void EightDo::CPU::jump_not_flag(Pins* pins, bool flag) {
 			}
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }

@@ -13,7 +13,7 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 					this->DecodeRegister(this->metadata.reg0) = pins->data;
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -37,7 +37,7 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 					this->DecodeRegister(this->metadata.reg0) = pins->data;
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -46,7 +46,7 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 				case 0:
 					this->DecodeRegister(this->metadata.reg0) = this->DecodeRegister(this->metadata.reg1);
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -75,7 +75,7 @@ void EightDo::CPU::STR(Pins* pins, AddressingModes addressing_mode) {
 				case 3:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -103,7 +103,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -136,7 +136,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 					
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -155,7 +155,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 					reg0 = this->temp16 & 0xFF;
 					
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -184,7 +184,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -218,7 +218,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 					
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -238,7 +238,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 					reg0 = this->temp16 & 0xFF;
 					
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -260,7 +260,7 @@ void EightDo::CPU::JMP(Pins* pins) {
 			this->temp16 |= pins->data;
 			this->pc = this->temp16;
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -345,7 +345,7 @@ void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -359,7 +359,7 @@ void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -396,7 +396,7 @@ void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -410,7 +410,7 @@ void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -447,7 +447,7 @@ void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -461,7 +461,7 @@ void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -498,7 +498,7 @@ void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -512,15 +512,15 @@ void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
 
-void EightDo::CPU::CLC() {
+void EightDo::CPU::CLC(Pins* pins) {
 	this->flags.C = 0;
 	this->state = State::Fetch;
-	this->finish();
+	this->finish(pins);
 }
 
 void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
@@ -551,7 +551,7 @@ void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -562,7 +562,7 @@ void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
@@ -595,7 +595,7 @@ void EightDo::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
 				case 4:
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -606,14 +606,14 @@ void EightDo::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
 			this->flags.N = reg & 0x80;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
 }
 
-void EightDo::CPU::HLT() {
+void EightDo::CPU::HLT(Pins* pins) {
 	this->state = State::Halt;
-	this->finish();
+	this->finish(pins);
 }
 
 void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
@@ -634,7 +634,7 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -664,7 +664,7 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 
 					this->pc++;
 					this->state = State::Fetch;
-					this->finish();
+					this->finish(pins);
 				break;
 			}
 		break;
@@ -678,7 +678,37 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 			this->flags.L = reg0 < reg1;
 
 			this->state = State::Fetch;
-			this->finish();
+			this->finish(pins);
 		break;
 	}
+}
+
+void EightDo::CPU::LDO(Pins* pins) {
+	switch (this->cycleCount) {
+		case 0:
+			pins->address = this->pc;
+			pins->rw = ReadWrite::Read;
+		break;
+		case 1:
+			this->temp16 = pins->data << 8;
+			pins->address = ++this->pc;
+			pins->rw = ReadWrite::Read;
+		break;
+		case 2:
+			this->temp16 |= pins->data;
+			pins->address = this->temp16 + (uint16_t)this->ro;
+			pins->rw = ReadWrite::Read;
+		break;
+		case 3:
+			this->DecodeRegister(this->metadata.reg0) = pins->data;
+			this->pc++;
+			this->state = State::Fetch;
+			this->finish(pins);
+		break;
+	}
+}
+
+void EightDo::CPU::NOP(Pins* pins) {
+	this->state = State::Fetch;
+	this->finish(pins);
 }

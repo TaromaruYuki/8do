@@ -1,5 +1,3 @@
-import string
-
 DATA = {
     "instructions": {
         "LDR": {"size": 2, "opcode": {"RI": 0x2B, "RA": 0x23, "RR": 0x34}},
@@ -27,10 +25,12 @@ DATA = {
         "INC": {"size": 1, "opcode": {"A": 0x3B, "R": 0x2C}},
         "DEC": {"size": 1, "opcode": {"A": 0x0D, "R": 0x1E}},
         "HLT": {"size": 0, "opcode": 0xE8},
-        "CMP": {"size": 2, "opcode": {"RI": 0x29, "RA": 0x21, "RR": 0x32}}
+        "CMP": {"size": 2, "opcode": {"RI": 0x29, "RA": 0x21, "RR": 0x32}},
+        "LDO": {"size": 2, "opcode": {"RA": 0xDF}},
+        "NOP": {"size": 0, "opcode": 0x00}
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
-    "keywords": ["ORG", "WORD", "BYTE"]
+    "keywords": []
 }
 
 DATA["keywords"].extend(DATA['instructions'].keys())
@@ -39,13 +39,15 @@ def assemble(file):
     with open(file, "r") as f:
         text = f.read()
     
-    result = [0xE8 for _ in range(0xFFFF)]
+    result = [0x00 for _ in range(0xFFFF)]
     addr = 0x0000
     comment = False
     org = False
     instruction = False
     iword = False
     ibyte = False
+    ascii_ = False
+    z = False
     name = ""
     new = []
     nametable = {}
@@ -67,6 +69,8 @@ def assemble(file):
                 continue
         
             new.append(word.replace("\n", "").replace("\t", ""))
+            
+    new.append(" ")
         
     for word in new:
         if org:
@@ -76,7 +80,7 @@ def assemble(file):
         
         if iword:
             value = int(word.replace("$", ""), 16)
-            result[addr] = (value & 0xFF00) >> 8
+            result[addr] = (value >> 8)
             result[addr + 1] = value & 0xFF
             addr += 2
             iword = False
@@ -89,8 +93,36 @@ def assemble(file):
             ibyte = False
             continue
         
+        if ascii_:
+            escaped = False
+            escape_seqs = {"n": "\n", "\\": "\\", "\"": "\""}
+            
+            if word[0] == '"':
+                word = word[1:]
+                
+            for char in word:
+                if not escaped and char == "\"":
+                    if z:
+                        result[addr] = 0x00
+                        addr += 1
+                        z = False
+                    ascii_ = False
+                    break
+                
+                if escaped:
+                    result[addr] = ord(escape_seqs[char])
+                    addr += 1
+                    continue
+                
+                result[addr] = ord(char)
+                addr += 1
+
+            if ascii_:
+                result[addr] = ord(" ")
+                addr += 1
+        
         if instruction:
-            if word.upper() in DATA["instructions"] and not key:
+            if (word.upper() in DATA["instructions"] and not key) or word == " ":
                 result[addr] = DATA["instructions"][name]["opcode"]
                 addr += 1
                 name = word.upper()
@@ -141,7 +173,7 @@ def assemble(file):
 
                     value = int(word.replace("$", ""), 16)
                     
-                    result[addr + 2] = (value & 0xFF00) >> 8
+                    result[addr + 2] = (value >> 8)
                     result[addr + 3] = value & 0xFF
                     
                     addr += 4
@@ -151,11 +183,11 @@ def assemble(file):
                     continue
                 
                 result[addr] = DATA["instructions"][name]["opcode"][key]
-                result[addr + 1] = 0xFF
+                result[addr + 1] = 0x3F
                 
                 value = int(word.replace("$", ""), 16)
                 
-                result[addr + 2] = (value & 0xFF00) >> 8
+                result[addr + 2] = (value >> 8)
                 result[addr + 3] = value & 0xFF
                 
                 addr += 4
@@ -184,7 +216,7 @@ def assemble(file):
                     continue
                 
                 result[addr] = DATA["instructions"][name]["opcode"]["key"]
-                result[addr + 1] = 0xFF
+                result[addr + 1] = 0x3F
                 
                 value = int(word.replace("0x", ""), 16)
                 
@@ -207,11 +239,11 @@ def assemble(file):
                         
                             result[addr + 1] = reg1
                         else:
-                            result[addr + 1] = 0xFF
+                            result[addr + 1] = 0x3F
                         
                         value = nametable[word]
                         
-                        result[addr + 2] = (value & 0xFF00) >> 8
+                        result[addr + 2] = (value >> 8)
                         result[addr + 3] = value & 0xFF
                         
                         addr += 4
@@ -221,11 +253,11 @@ def assemble(file):
                         continue
                     
                     result[addr] = DATA["instructions"][name]["opcode"][key]
-                    result[addr + 1] = 0xFF
+                    result[addr + 1] = 0x3F
                     
                     value = nametable[word]
                     
-                    result[addr + 2] = (value & 0xFF00) >> 8
+                    result[addr + 2] = (value >> 8)
                     result[addr + 3] = value & 0xFF
                     
                     addr += 4
@@ -241,7 +273,7 @@ def assemble(file):
                         
                     result[addr + 1] = reg1
                 else:
-                    result[addr + 1] = 0xFF
+                    result[addr + 1] = 0x3F
                     
                 result[addr + 2] = word
                 result[addr + 3] = None
@@ -260,41 +292,37 @@ def assemble(file):
         elif word.upper() == ".BYTE":
             ibyte = True
             continue
+        elif word.upper() == ".ASCII":
+            ascii_ = True
+            continue
+        elif word.upper() == ".ASCIIZ":
+            ascii_ = True
+            z = True
+            continue
         elif word[-1] == ":":
-            nametable[word.replace(":", "")] = addr + 1
+            nametable[word.replace(":", "")] = addr
             continue
         
         if word.upper() in DATA["instructions"]:
             instruction = True
             name = word.upper()
             continue
+        
+    for i, byte in enumerate(result):
+        if isinstance(byte, str):
+            if not (byte in nametable):
+                print(f"Error: {word} not found in nametable")
+                exit(1)
+
+            value = nametable[byte]
+                
+            result[i] = (value >> 8)
+            result[i + 1] = (value & 0xFF)
+            continue
+        elif byte is None:
+            exit(1)
     
     with open("gen/test.bin", "wb") as f:
-        for i, byte in enumerate(result):
-            if isinstance(byte, str):
-                if not (byte in nametable):
-                    print(f"Error: {word} not found in nametable")
-                    exit(1)
-
-                value = nametable[byte]
-                
-                f.write(((value & 0xFF00) >> 8).to_bytes())
-                f.write((value & 0xFF).to_bytes())
-                result[i + 1] = (value & 0xFF)
-                continue
-            elif byte is None:
-                exit(1)
-                
-            f.write(byte.to_bytes())
+        f.write(bytes(result))
 
 assemble("gen/test.8do")
-
-#if __name__ != "__main__":
-#    # file = input("File name: ")
-#    file = "gen/test.8do"
-#    out = [0x00 for _ in range(0x10000)]
-#    
-#    lexer = Lexer(file)
-#    tokens = lexer.tokenize()
-#    
-#    print("\n".join(map(str, tokens)))
