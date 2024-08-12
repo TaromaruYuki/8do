@@ -1,0 +1,24 @@
+.ORG $0000
+
+jump_table: .WORD $0200
+
+.ORG $0100
+
+num1hi: .BYTE 0xAB
+num1lo: .BYTE 0xCD
+num2hi: .BYTE 0x12
+num2lo: .BYTE 0x34
+resulthi: .BYTE 0x00
+resultlo: .BYTE 0x00
+
+.ORG $0200
+
+main:
+	CLC
+	LDR RA, num1lo
+	ADD RA, num2lo
+	STR RA, resultlo
+	LDR RA, num1hi
+	ADD RA, num2hi
+	STR RA, resulthi
+	HLT

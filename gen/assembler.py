@@ -124,7 +124,8 @@ def assemble(file):
         if instruction:
             if (word.upper() in DATA["instructions"] and not key) or word == " ":
                 result[addr] = DATA["instructions"][name]["opcode"]
-                addr += 1
+                result[addr + 1] = 0x3F
+                addr += 2
                 name = word.upper()
                 continue
             
@@ -322,7 +323,9 @@ def assemble(file):
         elif byte is None:
             exit(1)
     
-    with open("gen/test.bin", "wb") as f:
+    with open(file.replace(".8do", ".bin"), "wb") as f:
         f.write(bytes(result))
 
-assemble("gen/test.8do")
+if __name__ == "__main__":
+    import sys
+    assemble(sys.argv[1])
