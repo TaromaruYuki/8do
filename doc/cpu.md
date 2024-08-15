@@ -4,21 +4,20 @@ CPU Specification
 
 - 8-bit
 - 5 Registers
-	- A: Accumulator
+	- A: General Purpose
 	- B: General Purpose
 	- C: General Purpose
 	- D: General Purpose
-	- O: Offset
-- 16-bit address bus
+	- O: Offset / General Purpose
+- 18-bit address bus
 - 8-bit data bus
-- Built in bank switching <!-- TODO -->
+- 10-bit Stack Pointer
 
 ### Table of Contents
 
 - [Registers](#registers)
 - [Instructions](#instructions)
 - [Addressing Modes](#addressing-modes)
-- Mapper <!-- [Mapper](#mapper)--> <!-- TODO -->
 
 ## Registers
 
@@ -322,7 +321,41 @@ Store a register value into memory.
 | Register            | 0x32       | 2         | 1          |
 +---------------------+------------+-----------+------------+
 
-<!-- # Mapper
+### PSH
 
-The CPU has a built in mapper that allows for bank switching.
-There are **4** banks, each with a max size of **64KB**. -->
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Immediate           | 0x74       | 3         | 2          |
++---------------------+------------+-----------+------------+
+| Absolute            | 0x4C       | 4         | 4          |
++---------------------+------------+-----------+------------+
+| Register            | 0x3D       | 2         | 1          |
++---------------------+------------+-----------+------------+
+
+### POP
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Absolute            | 0x30       | 4         | 4          |
++---------------------+------------+-----------+------------+
+| Register            | 0x41       | 2         | 1          |
++---------------------+------------+-----------+------------+
+
+### JSR
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Absolute            | 0xEF       | 4         | 4          |
++---------------------+------------+-----------+------------+
+
+### RTS
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Implied             | 0xEB       | 2         | 3          |
++---------------------+------------+-----------+------------+
+

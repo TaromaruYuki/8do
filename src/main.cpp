@@ -6,7 +6,7 @@
 int main() {
 	EightDo::Emulator emulator;
 
-    std::string file = "../../../gen/mul8.bin";
+    std::string file = "../../../gen/stack.bin";
 	
     if(!std::filesystem::exists(file)) {
         std::cerr << "File '" << file << "' does not exist." << std::endl;

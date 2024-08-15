@@ -1,4 +1,6 @@
 # TODO
 
-- [ ] Breakpoint the BIZ $ instruction
-- [ ] Check assembler for bad label addresses (If above doesn't fixes the inf loop problem)
+- [ ] When returning from subroutine,
+the address that fetches the next instruction is 0x0000
+when the instruction popped from the stack is the right address???
+Check what happens after the RET instruction.

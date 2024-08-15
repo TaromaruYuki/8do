@@ -9,7 +9,8 @@ void EightDo::CPU::reset(Pins* pins) {
 	this->ro = 0;
 
 	this->pc = 0;
-	this->sp = 0;
+	this->sp.value = 0;
+	this->sp.unused = 0x3F;
 
 	this->flags.value = 0;
 	this->metadata.value = 0;
@@ -131,8 +132,15 @@ void EightDo::CPU::execute_state_handler(Pins* pins) {
 		case 0x32: CMP(pins, AddressingModes::Register); break;
 		case 0xDF: LDO(pins); break;
 		case 0x00: NOP(pins); break;
+		case 0x74: PSH(pins, AddressingModes::Immediate); break;
+		case 0x4C: PSH(pins, AddressingModes::Absolute); break;
+		case 0x3D: PSH(pins, AddressingModes::Register); break;
+		case 0x30: POP(pins, AddressingModes::Absolute); break;
+		case 0x41: POP(pins, AddressingModes::Register); break;
+		case 0xEF: JSR(pins); break;
+		case 0xEB: RET(pins); break;
 		default: {
-			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc << std::endl;
+			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc - 2 << std::endl;
 
 			std::exit(1);
 		}

@@ -41,35 +41,44 @@ namespace EightDo {
 				uint8_t ext_addr : 2;
 			};
 			uint8_t value;
-		} metadata;                    // Current Instruction Metadata
+		} metadata;                     // Current Instruction Metadata
 
 		union {
 			struct {
-				uint8_t Z : 1;         // Zero
-				uint8_t N : 1;         // Negative
-				uint8_t C : 1;         // Carry
-				uint8_t O : 1;         // Overflow
-				uint8_t L : 1;         // Less Than
-				uint8_t G : 1;         // Greater Than
-				uint8_t _ : 2;		   // Unused
+				uint8_t Z : 1;          // Zero
+				uint8_t N : 1;          // Negative
+				uint8_t C : 1;          // Carry
+				uint8_t O : 1;          // Overflow
+				uint8_t L : 1;          // Less Than
+				uint8_t G : 1;          // Greater Than
+				uint8_t _ : 2;		    // Unused
 			};
 			uint8_t value;
-		} flags;				       // Flags Register
+		} flags;				        // Flags Register
+
+
+		union {
+			struct {
+				uint16_t value : 10;
+				uint16_t unused : 6;
+			};
+
+			uint16_t address;
+		} sp;                           // Stack Pointer
 						          
-		uint8_t ra = 0;                // A      Register
-		uint8_t rb = 0;                // B      Register
-		uint8_t rc = 0;                // C      Register
-		uint8_t rd = 0;                // D      Register
-		uint8_t ro = 0;                // Offset Register
+		uint8_t ra = 0;                 // A      Register
+		uint8_t rb = 0;                 // B      Register
+		uint8_t rc = 0;                 // C      Register
+		uint8_t rd = 0;                 // D      Register
+		uint8_t ro = 0;                 // Offset Register
 						          	   
-		uint16_t pc = 0;               // Program Counter
-		uint8_t sp = 0;                // Stack Pointer
-		State state;                   // Current State
-		int8_t cycleCount = 0;         // Current Cycle
+		uint16_t pc = 0;                // Program Counter
+		State state;                    // Current State
+		int8_t cycleCount = 0;          // Current Cycle
 						          	   
-		uint16_t temp16 = 0;           // Temporary 16-bit value
-		uint8_t temp8 = 0;	           // Temporary 8-bit value
-		uint8_t opcode = 0;	           // Current Opcode
+		uint16_t temp16 = 0;            // Temporary 16-bit value
+		uint8_t temp8 = 0;	            // Temporary 8-bit value
+		uint8_t opcode = 0;	            // Current Opcode
 		
 	public:
 		CPU(Pins* pins) { this->reset(pins); };
@@ -116,5 +125,9 @@ namespace EightDo {
 		void CMP(Pins* pins, AddressingModes addressing_mode);
 		void LDO(Pins* pins);
 		void NOP(Pins* pins);
+		void PSH(Pins* pins, AddressingModes addressing_mode);
+		void POP(Pins* pins, AddressingModes addressing_mode);
+		void JSR(Pins* pins);
+		void RET(Pins* pins);
 	};
 }

@@ -27,13 +27,15 @@ DATA = {
         "HLT": {"size": 0, "opcode": 0xE8},
         "CMP": {"size": 2, "opcode": {"RI": 0x29, "RA": 0x21, "RR": 0x32}},
         "LDO": {"size": 2, "opcode": {"RA": 0xDF}},
-        "NOP": {"size": 0, "opcode": 0x00}
+        "NOP": {"size": 0, "opcode": 0x00},
+        "PSH": {"size": 1, "opcode": {"A": 0x4C, "R": 0x3D, "I": 0x74}},
+        "POP": {"size": 1, "opcode": {"A": 0x30, "R": 0x41}},
+        "JSR": {"size": 1, "opcode": {"A": 0xEF}},
+        "RET": {"size": 0, "opcode": 0xEB},
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
-    "keywords": []
+    "keywords": [".ORG", ".WORD", ".BYTE", ".ASCII", ".ASCIIZ"]
 }
-
-DATA["keywords"].extend(DATA['instructions'].keys())
     
 def assemble(file):
     with open(file, "r") as f:
@@ -129,6 +131,33 @@ def assemble(file):
                 name = word.upper()
                 continue
             
+            if word in DATA["keywords"]:
+                result[addr] = DATA["instructions"][name]["opcode"]
+                result[addr + 1] = 0x3F
+                addr += 2
+                
+                if word.upper() == ".ORG":
+                    instruction = False
+                    org = True
+                    continue
+                elif word.upper() == ".WORD":
+                    instruction = False
+                    iword = True
+                    continue
+                elif word.upper() == ".BYTE":
+                    instruction = False
+                    ibyte = True
+                    continue
+                elif word.upper() == ".ASCII":
+                    instruction = False
+                    ascii_ = True
+                    continue
+                elif word.upper() == ".ASCIIZ":
+                    instruction = False
+                    ascii_ = True
+                    z = True
+                    continue
+            
             if word.upper().replace(",", "").replace(" ", "") in DATA["registers"]:
                 key += "R"
                 
@@ -216,7 +245,7 @@ def assemble(file):
                     instruction = False
                     continue
                 
-                result[addr] = DATA["instructions"][name]["opcode"]["key"]
+                result[addr] = DATA["instructions"][name]["opcode"][key]
                 result[addr + 1] = 0x3F
                 
                 value = int(word.replace("0x", ""), 16)
@@ -266,7 +295,7 @@ def assemble(file):
                     instruction = False
                     continue
         
-                result[addr] = DATA["instructions"][name]["opcode"][key]
+                result[addr] = DATA["instructions"][name]["opcode"][key] # Ignore first breakpoint activation.
                         
                 if temp:
                     lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
@@ -328,4 +357,5 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    assemble(sys.argv[1])
+    #assemble(sys.argv[1])
+    assemble("gen/stack.8do")
