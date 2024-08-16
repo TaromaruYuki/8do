@@ -36,7 +36,7 @@ DATA = {
     "registers": ["RA", "RB", "RC", "RD", "RO"],
     "keywords": [".ORG", ".WORD", ".BYTE", ".ASCII", ".ASCIIZ"]
 }
-    
+
 def assemble(file):
     with open(file, "r") as f:
         text = f.read()
@@ -81,9 +81,18 @@ def assemble(file):
             continue
         
         if iword:
-            value = int(word.replace("$", ""), 16)
-            result[addr] = (value >> 8)
-            result[addr + 1] = value & 0xFF
+            if word[0] == "$":
+                value = int(word.replace("$", ""), 16)
+                result[addr] = (value >> 8)
+                result[addr + 1] = value & 0xFF
+            else:
+                if nametable.get(word):
+                    value = nametable[word]
+                    result[addr] = (value >> 8)
+                    result[addr + 1] = value & 0xFF
+                else:
+                    result[addr] = word
+                    result[addr + 1] = None
             addr += 2
             iword = False
             continue
@@ -122,6 +131,8 @@ def assemble(file):
             if ascii_:
                 result[addr] = ord(" ")
                 addr += 1
+            
+            continue
         
         if instruction:
             if (word.upper() in DATA["instructions"] and not key) or word == " ":
@@ -157,6 +168,15 @@ def assemble(file):
                     ascii_ = True
                     z = True
                     continue
+
+            if word[-1] == ":":
+                result[addr] = DATA["instructions"][name]["opcode"]
+                result[addr + 1] = 0x3F
+                addr += 2
+
+                nametable[word.replace(":", "")] = addr
+                instruction = False
+                continue
             
             if word.upper().replace(",", "").replace(" ", "") in DATA["registers"]:
                 key += "R"
@@ -346,6 +366,9 @@ def assemble(file):
             instruction = True
             name = word.upper()
             continue
+
+        print(f"\"{word}\" is invalid.")
+        exit(1)
         
     for i, byte in enumerate(result):
         if isinstance(byte, str):
@@ -369,5 +392,4 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    #assemble(sys.argv[1])
-    assemble("gen/18bitaddr.8do")
+    assemble(sys.argv[1])

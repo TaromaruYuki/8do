@@ -9,13 +9,17 @@ str: .ASCIIZ "Hello, World!"
 .ORG $0200
 
 main:
-	LDR RO, 0x0
-loop:
+	JSR print
+	HLT
+
+print:
+	LDR RO, 0x00
+print_loop:
 	LDO RA, str
 	STR RA, $A000
 	CMP RA, 0x00
-	BIZ end
+	BIZ print_end
 	INC RO
-	JMP loop
-end:
-	HLT
+	JMP print_loop
+print_end:
+	RET
