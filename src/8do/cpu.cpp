@@ -139,6 +139,7 @@ void EightDo::CPU::execute_state_handler(Pins* pins) {
 		case 0x41: POP(pins, AddressingModes::Register); break;
 		case 0xEF: JSR(pins); break;
 		case 0xEB: RET(pins); break;
+		case 0x52: LDR(pins, AddressingModes::Pointer); break;
 		default: {
 			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc.address - 2 << std::endl;
 
