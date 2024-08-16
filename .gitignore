@@ -432,3 +432,6 @@ FodyWeavers.xsd
 
 # CMake output folder
 out/
+
+# Generated ROMs
+gen/*.bin
