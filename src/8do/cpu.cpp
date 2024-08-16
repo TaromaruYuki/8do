@@ -8,7 +8,7 @@ void EightDo::CPU::reset(Pins* pins) {
 	this->rd = 0;
 	this->ro = 0;
 
-	this->pc = 0;
+	this->pc.address = 0;
 	this->sp.value = 0;
 	this->sp.unused = 0x3F;
 
@@ -18,7 +18,7 @@ void EightDo::CPU::reset(Pins* pins) {
 	this->state = State::Reset;
 	this->cycleCount = 0;
 
-	pins->address = 0;
+	pins->address.address = 0;
 	pins->data = 0;
 	pins->bus_enable = true;
 	pins->rw = ReadWrite::Read;
@@ -45,18 +45,18 @@ void EightDo::CPU::cycle(Pins* pins) {
 void EightDo::CPU::reset_state_handler(Pins* pins) {
 	switch(this->cycleCount) {
 		case 0:
-			pins->address = 0x0000;
+			pins->address.address = 0x0000;
 			pins->rw = ReadWrite::Read;
 			break;
 		case 1:
 			this->temp16 = ((uint16_t)pins->data) << 8;
 
-			pins->address = 0x0001;
+			pins->address.address = 0x0001;
 			pins->rw = ReadWrite::Read;
 			break;
 		case 2:
 			this->temp16 |= pins->data;
-			this->pc = this->temp16;
+			this->pc.value = this->temp16;
 
 			this->state = State::Fetch;
 			this->finish(pins);
@@ -73,12 +73,12 @@ void EightDo::CPU::fetch_state_handler(Pins* pins) {
 			break;
 		case 1:
 			this->opcode = pins->data;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 			break;
 		case 2:
 			this->metadata.value = pins->data;
-			this->pc++;
+			this->pc.address++;
 
 			this->state = State::Execute;
 			this->finish(pins);
@@ -140,7 +140,7 @@ void EightDo::CPU::execute_state_handler(Pins* pins) {
 		case 0xEF: JSR(pins); break;
 		case 0xEB: RET(pins); break;
 		default: {
-			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc - 2 << std::endl;
+			std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc.address - 2 << std::endl;
 
 			std::exit(1);
 		}
@@ -184,16 +184,17 @@ void EightDo::CPU::jump_if_flag(Pins* pins, bool flag) {
 		break;
 		case 1:
 			this->temp16 = pins->data << 8;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
 			this->temp16 |= pins->data;
 			if(flag) {
-				this->pc = this->temp16;
+				this->pc.value = this->temp16;
+				this->pc.extended = this->metadata.ext_addr;
 			}
 			else {
-				this->pc++;
+				this->pc.address++;
 			}
 
 			this->state = State::Fetch;
@@ -210,15 +211,16 @@ void EightDo::CPU::jump_not_flag(Pins* pins, bool flag) {
 		break;
 		case 1:
 			this->temp16 = pins->data << 8;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
 			this->temp16 |= pins->data;
 			if(!flag) {
-				this->pc = this->temp16;
+				this->pc.value = this->temp16;
+				this->pc.extended = this->metadata.ext_addr;
 			} else {
-				this->pc++;
+				this->pc.address++;
 			}
 
 			this->state = State::Fetch;

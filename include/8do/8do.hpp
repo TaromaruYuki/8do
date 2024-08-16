@@ -20,7 +20,7 @@ namespace EightDo {
 				Options empty() { this->data = 0; }
 			};
 
-			uint8_t* ram = new uint8_t[0xFFFF];
+			uint8_t* ram = new uint8_t[0x3FFFF];
 
 			Emulator() { this->cpu = new EightDo::CPU(&this->pins); }
 
@@ -44,12 +44,12 @@ namespace EightDo {
 
 				if (this->pins.bus_enable) {
 					if (this->pins.rw == CPU::ReadWrite::Read) {
-						this->pins.data = this->ram[this->pins.address];
+						this->pins.data = this->ram[this->pins.address.address];
 					}
 					else {
-						this->ram[this->pins.address] = this->pins.data;
+						this->ram[this->pins.address.address] = this->pins.data;
 
-						if (this->pins.address == 0xA000) {
+						if (this->pins.address.address == 0xA000) {
 							if (this->ram[0xA001] == 0x00) {
 								std::cout << this->pins.data;
 							} else if (this->ram[0xA001] == 0x01) {

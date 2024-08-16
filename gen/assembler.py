@@ -41,8 +41,8 @@ def assemble(file):
     with open(file, "r") as f:
         text = f.read()
     
-    result = [0x00 for _ in range(0xFFFF)]
-    addr = 0x0000
+    result = [0x00 for _ in range(0x3FFFF + 1)]
+    addr = 0x00000
     comment = False
     org = False
     instruction = False
@@ -183,7 +183,7 @@ def assemble(file):
                     reg1 = lookup[temp[1]]
                     reg2 = lookup[word[1]]
 
-                    result[addr + 1] = (reg1 << 3) | reg2
+                    result[addr + 1] = (reg2 << 3) | reg1
                     
                     addr += 2
                     key = ""
@@ -202,8 +202,11 @@ def assemble(file):
                     result[addr + 1] = reg1
 
                     value = int(word.replace("$", ""), 16)
+
+                    if value > 0xFFFF:
+                        result[addr + 1] |= (value & 0x30000) >> 10;
                     
-                    result[addr + 2] = (value >> 8)
+                    result[addr + 2] = (value >> 8) & 0xFF
                     result[addr + 3] = value & 0xFF
                     
                     addr += 4
@@ -216,6 +219,9 @@ def assemble(file):
                 result[addr + 1] = 0x3F
                 
                 value = int(word.replace("$", ""), 16)
+                
+                if value > 0xFFFF:
+                    result[addr + 1] |= (value & 0x30000) >> 10;
                 
                 result[addr + 2] = (value >> 8)
                 result[addr + 3] = value & 0xFF
@@ -273,7 +279,10 @@ def assemble(file):
                         
                         value = nametable[word]
                         
-                        result[addr + 2] = (value >> 8)
+                        if value > 0xFFFF:
+                            result[addr + 1] |= (value & 0x30000) >> 10;
+                        
+                        result[addr + 2] = (value >> 8) & 0xFF
                         result[addr + 3] = value & 0xFF
                         
                         addr += 4
@@ -345,8 +354,11 @@ def assemble(file):
                 exit(1)
 
             value = nametable[byte]
+
+            if value > 0xFFFF:
+                result[i - 1] |= (value & 0x30000) >> 10;
                 
-            result[i] = (value >> 8)
+            result[i] = (value >> 8) & 0xFF
             result[i + 1] = (value & 0xFF)
             continue
         elif byte is None:
@@ -358,4 +370,4 @@ def assemble(file):
 if __name__ == "__main__":
     import sys
     #assemble(sys.argv[1])
-    assemble("gen/stack.8do")
+    assemble("gen/18bitaddr.8do")

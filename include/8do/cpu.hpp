@@ -15,15 +15,20 @@ namespace EightDo {
 			Halt
 		};
 
-		struct MapperValue {
-			uint8_t value : 2;
+		union ExtendedAddress {
+			struct {
+				uint32_t value : 16;
+				uint32_t extended : 2;
+				uint32_t unused : 14;
+			};
+
+			uint32_t address : 18;
 		};
 
 		struct Pins {
-			uint16_t address = 0x0000;
+			ExtendedAddress address = { .address = 0x00000 };
 			uint8_t data = 0x00;
 			ReadWrite rw = ReadWrite::Read;
-			MapperValue mapper;
 			bool bus_enable = true;
 		};
 
@@ -56,7 +61,6 @@ namespace EightDo {
 			uint8_t value;
 		} flags;				        // Flags Register
 
-
 		union {
 			struct {
 				uint16_t value : 10;
@@ -72,10 +76,10 @@ namespace EightDo {
 		uint8_t rd = 0;                 // D      Register
 		uint8_t ro = 0;                 // Offset Register
 						          	   
-		uint16_t pc = 0;                // Program Counter
+		ExtendedAddress pc;             // Program Counter
 		State state;                    // Current State
 		int8_t cycleCount = 0;          // Current Cycle
-						          	   
+
 		uint16_t temp16 = 0;            // Temporary 16-bit value
 		uint8_t temp8 = 0;	            // Temporary 8-bit value
 		uint8_t opcode = 0;	            // Current Opcode

@@ -11,7 +11,7 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->DecodeRegister(this->metadata.reg0) = pins->data;
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -25,17 +25,18 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
 					this->DecodeRegister(this->metadata.reg0) = pins->data;
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -63,17 +64,18 @@ void EightDo::CPU::STR(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->data = this->DecodeRegister(this->metadata.reg0);
 					pins->rw = ReadWrite::Write;
 				break;
 				case 3:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -101,7 +103,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 					
 					reg = this->temp16 & 0xFF;
 
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -115,12 +117,13 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -134,7 +137,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 
 					reg = this->temp16 & 0xFF;
 					
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -182,7 +185,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 					
 					reg = this->temp16 & 0xFF;
 
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -196,12 +199,13 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -216,7 +220,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 
 					reg = this->temp16 & 0xFF;
 					
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -253,12 +257,13 @@ void EightDo::CPU::JMP(Pins* pins) {
 		break;
 		case 1:
 			this->temp16 = pins->data << 8;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
 			this->temp16 |= pins->data;
-			this->pc = this->temp16;
+			this->pc.value = this->temp16;
+			this->pc.extended = this->metadata.ext_addr;
 			this->state = State::Fetch;
 			this->finish(pins);
 		break;
@@ -323,12 +328,13 @@ void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -339,11 +345,12 @@ void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 					this->flags.Z = pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -374,12 +381,13 @@ void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -390,11 +398,12 @@ void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 					this->flags.Z = pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -425,12 +434,13 @@ void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -441,11 +451,12 @@ void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 					this->flags.Z = pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -476,12 +487,13 @@ void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -492,11 +504,12 @@ void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 					this->flags.Z = pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -533,23 +546,25 @@ void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
 					this->flags.Z = ++pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -577,23 +592,25 @@ void EightDo::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
 					this->flags.Z = --pins->data == 0;
 					this->flags.N = pins->data & 0x80;
 
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -632,7 +649,7 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 					this->flags.G = reg > pins->data;
 					this->flags.L = reg < pins->data;
 
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -646,12 +663,13 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
@@ -662,7 +680,7 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 					this->flags.G = reg > pins->data;
 					this->flags.L = reg < pins->data;
 
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -691,17 +709,19 @@ void EightDo::CPU::LDO(Pins* pins) {
 		break;
 		case 1:
 			this->temp16 = pins->data << 8;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
 			this->temp16 |= pins->data;
-			pins->address = this->temp16 + (uint16_t)this->ro;
+			pins->address.value = this->temp16;
+			pins->address.extended = this->metadata.ext_addr;
+			pins->address.address += this->ro;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 3:
 			this->DecodeRegister(this->metadata.reg0) = pins->data;
-			this->pc++;
+			this->pc.address++;
 			this->state = State::Fetch;
 			this->finish(pins);
 		break;
@@ -722,12 +742,12 @@ void EightDo::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
 					pins->rw = ReadWrite::Read;
 				break;
 				case 1:
-					pins->address = this->sp.address;
+					pins->address.address = this->sp.address;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 2:
 					this->sp.value++;
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 			}
@@ -740,21 +760,22 @@ void EightDo::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
-					pins->address = this->sp.address;
+					pins->address.address = this->sp.address;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 4:
 					this->sp.value++;
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -763,13 +784,13 @@ void EightDo::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
 		case AddressingModes::Register:
 			switch (this->cycleCount) {
 				case 0:
-					pins->address = this->sp.address;
+					pins->address.address = this->sp.address;
 					pins->data = this->DecodeRegister(this->metadata.reg0);
 					pins->rw = ReadWrite::Write;
 				break;
 				case 1:
 					this->sp.value++;
-					this->pc++;
+					this->pc.address++;
 					this->state = State::Fetch;
 					this->finish(pins);
 				break;
@@ -788,20 +809,22 @@ void EightDo::CPU::POP(Pins* pins, AddressingModes addressing_mode) {
 				break;
 				case 1:
 					this->temp16 = pins->data << 8;
-					pins->address = ++this->pc;
+					pins->address.address = ++this->pc.address;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 2:
 					this->temp16 |= pins->data;
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 3:
-					pins->address = (--this->sp.address) | 0xFC00;
+					pins->address.address = (--this->sp.address) | 0xFC00;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 4:
-					pins->address = this->temp16;
+					pins->address.value = this->temp16;
+					pins->address.extended = this->metadata.ext_addr;
 					pins->rw = ReadWrite::Write;
 				break;
 				case 5:
@@ -813,7 +836,7 @@ void EightDo::CPU::POP(Pins* pins, AddressingModes addressing_mode) {
 		case AddressingModes::Register:
 			switch (this->cycleCount) {
 				case 0:
-					pins->address = (--this->sp.address) | 0xFC00;
+					pins->address.address = (--this->sp.address) | 0xFC00;
 					pins->rw = ReadWrite::Read;
 				break;
 				case 1:
@@ -835,24 +858,31 @@ void EightDo::CPU::JSR(Pins* pins) {
 		break;
 		case 1:
 			this->temp16 = pins->data << 8;
-			pins->address = ++this->pc;
+			pins->address.address = ++this->pc.address;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
 			this->temp16 |= pins->data;
-			pins->address = this->sp.address;
-			pins->data = ++this->pc >> 8;
+			pins->address.address = this->sp.address;
+			pins->data = ++this->pc.address >> 8;
 			pins->rw = ReadWrite::Write;
 		break;
 		case 3:
 			this->sp.value++;
-			pins->address = this->sp.address;
-			pins->data = this->pc & 0xFF;
+			pins->address.address = this->sp.address;
+			pins->data = this->pc.value & 0xFF;
 			pins->rw = ReadWrite::Write;
 		break;
 		case 4:
 			this->sp.value++;
-			this->pc = this->temp16;
+			pins->address.address = this->sp.address;
+			pins->data = this->pc.extended;
+			pins->rw = ReadWrite::Write;
+		break;
+		case 5:
+			this->sp.value++;
+			this->pc.value = this->temp16;
+			this->pc.extended = this->metadata.ext_addr;
 			this->state = State::Fetch;
 			this->finish(pins);
 		break;
@@ -862,17 +892,23 @@ void EightDo::CPU::JSR(Pins* pins) {
 void EightDo::CPU::RET(Pins* pins) {
 	switch(this->cycleCount) {
 		case 0:
-			pins->address = (--this->sp.address) | 0xFC00;
+			pins->address.address = (--this->sp.address) | 0xFC00;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 1:
-			this->temp16 = pins->data;
-			pins->address = (--this->sp.address) | 0xFC00;
+			this->temp8 = pins->data;
+			pins->address.address = (--this->sp.address) | 0xFC00;
 			pins->rw = ReadWrite::Read;
 		break;
 		case 2:
+			this->temp16 = pins->data;
+			pins->address.address = (--this->sp.address) | 0xFC00;
+			pins->rw = ReadWrite::Read;
+		break;
+		case 3:
 			this->temp16 |= pins->data << 8;
-			this->pc = this->temp16;
+			this->pc.value = this->temp16;
+			this->pc.extended = this->temp8;
 
 			this->state = State::Fetch;
 			this->finish(pins);
