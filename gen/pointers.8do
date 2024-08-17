@@ -1,0 +1,17 @@
+.ORG $0000
+
+jump_table: .WORD $0200
+
+.ORG $0100
+
+label: .BYTE 0x03 .WORD $D007
+
+.ORG $0200
+
+main:
+	LDR RA, >label
+	HLT
+
+.ORG $3D007
+
+label_data: .BYTE 0xAB

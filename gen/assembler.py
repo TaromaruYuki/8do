@@ -1,6 +1,6 @@
 DATA = {
     "instructions": {
-        "LDR": {"size": 2, "opcode": {"RI": 0x2B, "RA": 0x23, "RR": 0x34}},
+        "LDR": {"size": 2, "opcode": {"RI": 0x2B, "RA": 0x23, "RR": 0x34, "RP": 0x52}},
         "STR": {"size": 2, "opcode": {"RA": 0x3A}},
         "ADD": {"size": 2, "opcode": {"RI": 0x12, "RA": 0x0A, "RR": 0x1B}},
         "SUB": {"size": 2, "opcode": {"RI": 0x33, "RA": 0x4B, "RR": 0x3C}},
@@ -250,6 +250,123 @@ def assemble(file):
                 key = ""
                 instruction = False
                 continue
+            elif word.upper()[0] == ">":
+                key += "P" # Pointer. Can be a memory address like $, or a label.
+
+                if len(key) == 2:
+                    if not word.upper()[1] == "$": # Label
+                        if (word.upper()[1:] in nametable): 
+                            result[addr] = DATA["instructions"][name]["opcode"][key]
+                        
+                            if temp:
+                                lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
+                                reg1 = lookup[temp[1]]
+                        
+                                result[addr + 1] = reg1
+                            else:
+                                result[addr + 1] = 0x3F
+                        
+                            value = nametable[word]
+                        
+                            if value > 0xFFFF:
+                                result[addr + 1] |= (value & 0x30000) >> 10;
+                        
+                            result[addr + 2] = (value >> 8) & 0xFF
+                            result[addr + 3] = value & 0xFF
+                        
+                            addr += 4
+                            key = ""
+                            temp = None
+                            instruction = False
+                            continue
+
+                        result[addr] = DATA["instructions"][name]["opcode"][key]
+                        
+                        if temp:
+                            lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
+                            reg1 = lookup[temp[1]]
+                        
+                            result[addr + 1] = reg1
+                        else:
+                            result[addr + 1] = 0x3F
+                    
+                        result[addr + 2] = word.replace(">", "")
+                        result[addr + 3] = None
+                
+                        addr += 4
+                        key = ""
+                        instruction = False
+                        continue
+                        
+                    else:
+                        result[addr] = DATA["instructions"][name]["opcode"][key]
+                    
+                        lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
+                        reg1 = lookup[temp[1]]
+
+                        result[addr + 1] = reg1
+
+                        value = int(word.replace(">$", ""), 16)
+
+                        if value > 0xFFFF:
+                            result[addr + 1] |= (value & 0x30000) >> 10;
+                    
+                        result[addr + 2] = (value >> 8) & 0xFF
+                        result[addr + 3] = value & 0xFF
+                    
+                        addr += 4
+                        key = ""
+                        temp = None
+                        instruction = False
+                        continue
+                if not word.upper()[1] == "$": # Label
+                    if (word.upper()[1:] in nametable): 
+                        result[addr] = DATA["instructions"][name]["opcode"][key]
+                        result[addr + 1] = 0x3F
+                    
+                        value = nametable[word]
+                    
+                        result[addr + 2] = (value >> 8)
+                        result[addr + 3] = value & 0xFF
+                    
+                        addr += 4
+                        key = ""
+                        instruction = False
+                        continue
+
+                    result[addr] = DATA["instructions"][name]["opcode"][key]
+                        
+                    if temp:
+                        lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
+                        reg1 = lookup[temp[1]]
+                        
+                        result[addr + 1] = reg1
+                    else:
+                        result[addr + 1] = 0x3F
+                    
+                    result[addr + 2] = word.replace(">", "")
+                    result[addr + 3] = None
+                
+                    addr += 4
+                    key = ""
+                    instruction = False
+                    continue
+                else:
+                    result[addr] = DATA["instructions"][name]["opcode"][key]
+                    result[addr + 1] = 0x3F
+                
+                    value = int(word.replace("$", ""), 16)
+                
+                    if value > 0xFFFF:
+                        result[addr + 1] |= (value & 0x30000) >> 10;
+                
+                    result[addr + 2] = (value >> 8)
+                    result[addr + 3] = value & 0xFF
+                
+                    addr += 4
+                    key = ""
+                    instruction = False
+                    continue
             elif "0x" in word:
                 key += "I"
                 
@@ -324,7 +441,7 @@ def assemble(file):
                     instruction = False
                     continue
         
-                result[addr] = DATA["instructions"][name]["opcode"][key] # Ignore first breakpoint activation.
+                result[addr] = DATA["instructions"][name]["opcode"][key]
                         
                 if temp:
                     lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
@@ -365,6 +482,9 @@ def assemble(file):
         if word.upper() in DATA["instructions"]:
             instruction = True
             name = word.upper()
+            continue
+
+        if word == " ":
             continue
 
         print(f"\"{word}\" is invalid.")
