@@ -1,11 +1,11 @@
-#include <8do/cpu.hpp>
+#include <CPU/lib.hpp>
 
 namespace EightDo {
 	constexpr float HERTZ = 100000;
 
 	class Emulator {
-		CPU* cpu;
-		CPU::Pins pins;
+		CPU::CPU* cpu;
+		CPU::CPU::Pins pins;
 
 		public:
 			union Options {
@@ -20,13 +20,14 @@ namespace EightDo {
 				Options empty() { this->data = 0; }
 			};
 
-			uint8_t* ram = new uint8_t[0x3FFFF];
+			uint8_t* ram_ptr;
+			CPU::CommonDevices::RAM ram = CPU::CommonDevices::RAM({ .address = 0x00000 }, { .address = 0x3FFFF }, ram_ptr);
 
-			Emulator() { this->cpu = new EightDo::CPU(&this->pins); }
+			Emulator() { this->cpu = new CPU::CPU(&this->pins); }
 
 			void start() {
 				while(1) {
-					if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == CPU::State::Halt) {
+					if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == CPU::CPU::State::Halt) {
 						break;
 					}
 
@@ -43,16 +44,16 @@ namespace EightDo {
 				this->cpu->cycle(&this->pins);
 
 				if (this->pins.bus_enable) {
-					if (this->pins.rw == CPU::ReadWrite::Read) {
-						this->pins.data = this->ram[this->pins.address.address];
+					if (this->pins.rw == CPU::CPU::ReadWrite::Read) {
+						this->pins.data = this->ram.read(this->pins.address).value;
 					}
 					else {
-						this->ram[this->pins.address.address] = this->pins.data;
+						this->ram.write(this->pins.address, this->pins.data);
 
-						if (this->pins.address.address == 0xA000) {
-							if (this->ram[0xA001] == 0x00) {
+						if (this->pins.address.address == 0xA000) { // TEMP: Basic printing mainly for debugging
+							if (this->ram_ptr[0xA001] == 0x00) {
 								std::cout << this->pins.data;
-							} else if (this->ram[0xA001] == 0x01) {
+							} else if (this->ram_ptr[0xA001] == 0x01) {
 								std::cout << std::to_string((uint16_t)this->pins.data);
 							} 
 						}

@@ -1,6 +1,8 @@
+#pragma once
+
 #include <inttypes.h>
 
-namespace EightDo {
+namespace CPU {
 	class CPU {
 	public:
 		enum struct ReadWrite {

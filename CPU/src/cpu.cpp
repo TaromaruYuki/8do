@@ -1,7 +1,7 @@
-#include <8do/cpu.hpp>
+#include <CPU/cpu.hpp>
 #include <iostream>
 
-void EightDo::CPU::reset(Pins* pins) {
+void CPU::CPU::reset(Pins* pins) {
 	this->ra = 0;
 	this->rb = 0;
 	this->rc = 0;
@@ -24,7 +24,7 @@ void EightDo::CPU::reset(Pins* pins) {
 	pins->rw = ReadWrite::Read;
 }
 
-void EightDo::CPU::cycle(Pins* pins) {
+void CPU::CPU::cycle(Pins* pins) {
 	switch(this->state) {
 		case State::Reset:
 			this->reset_state_handler(pins);
@@ -42,7 +42,7 @@ void EightDo::CPU::cycle(Pins* pins) {
 	this->cycleCount++;
 }
 
-void EightDo::CPU::reset_state_handler(Pins* pins) {
+void CPU::CPU::reset_state_handler(Pins* pins) {
 	switch(this->cycleCount) {
 		case 0:
 			pins->address.address = 0x0000;
@@ -64,7 +64,7 @@ void EightDo::CPU::reset_state_handler(Pins* pins) {
 	}
 }
 
-void EightDo::CPU::fetch_state_handler(Pins* pins) {
+void CPU::CPU::fetch_state_handler(Pins* pins) {
 	switch(this->cycleCount) {
 		case 0:
 			pins->address = this->pc;
@@ -86,7 +86,7 @@ void EightDo::CPU::fetch_state_handler(Pins* pins) {
 	}
 }
 
-void EightDo::CPU::execute_state_handler(Pins* pins) {
+void CPU::CPU::execute_state_handler(Pins* pins) {
 	pins->bus_enable = true;
 
 	switch(this->opcode) {
@@ -150,7 +150,7 @@ void EightDo::CPU::execute_state_handler(Pins* pins) {
 	}
 }
 
-uint8_t& EightDo::CPU::DecodeRegister(uint8_t reg) {
+uint8_t& CPU::CPU::DecodeRegister(uint8_t reg) {
 	switch(reg) {
 		case 0x0:
 			return this->ra;
@@ -179,7 +179,7 @@ uint8_t& EightDo::CPU::DecodeRegister(uint8_t reg) {
 	}
 }
 
-void EightDo::CPU::jump_if_flag(Pins* pins, bool flag) {
+void CPU::CPU::jump_if_flag(Pins* pins, bool flag) {
 	switch(this->cycleCount) {
 		case 0:
 			pins->address = this->pc;
@@ -200,7 +200,7 @@ void EightDo::CPU::jump_if_flag(Pins* pins, bool flag) {
 	}
 }
 
-void EightDo::CPU::jump_not_flag(Pins* pins, bool flag) {
+void CPU::CPU::jump_not_flag(Pins* pins, bool flag) {
 	switch(this->cycleCount) {
 		case 0:
 			pins->address = this->pc;

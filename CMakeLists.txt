@@ -7,8 +7,10 @@ endif()
 
 project("8do")
 
-add_executable(${PROJECT_NAME} "src/main.cpp"  "src/8do/cpu.cpp" "src/8do/cpu_instructions.cpp")
-target_include_directories(${PROJECT_NAME} PUBLIC "include/")
+add_executable(${PROJECT_NAME} "src/main.cpp")
+add_subdirectory("CPU")
+
+target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include")
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
 	set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)

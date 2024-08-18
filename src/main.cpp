@@ -6,7 +6,7 @@
 int main() {
 	EightDo::Emulator emulator;
 
-    std::string file = "../../../gen/pointers.bin";
+    std::string file = "../../../gen/hello_world.bin";
 	
     if(!std::filesystem::exists(file)) {
         std::cerr << "File '" << file << "' does not exist." << std::endl;
@@ -15,7 +15,7 @@ int main() {
 
     std::ifstream fs(file, std::ios::in | std::ios::binary);
 
-    fs.read(reinterpret_cast<char*>(emulator.ram), 0x3FFFF);
+    fs.read(reinterpret_cast<char*>(emulator.ram_ptr), 0x3FFFF);
 
     if(fs.bad()) {
         std::cerr << "Filestream for file '" << file << "' is bad." << std::endl;

@@ -1,7 +1,7 @@
-#include <8do/cpu.hpp>
+#include <cpu/cpu.hpp>
 #include <limits>
 
-void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Immediate:
 			switch(this->cycleCount) {
@@ -94,7 +94,7 @@ void EightDo::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::STR(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::STR(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -124,7 +124,7 @@ void EightDo::CPU::STR(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Immediate:
 			switch(this->cycleCount) {
@@ -205,7 +205,7 @@ void EightDo::CPU::ADD(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Immediate:
 			switch(this->cycleCount) {
@@ -289,7 +289,7 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::JMP(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::JMP(Pins* pins, AddressingModes addressing_mode) {
 	switch (addressing_mode) {
 		case AddressingModes::Absolute:
 			switch (this->cycleCount) {
@@ -349,55 +349,55 @@ void EightDo::CPU::JMP(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::BIZ(Pins* pins) {
+void CPU::CPU::BIZ(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.Z);
 }
 
-void EightDo::CPU::BNZ(Pins* pins) {
+void CPU::CPU::BNZ(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.Z);
 }
 
-void EightDo::CPU::BIN(Pins* pins) {
+void CPU::CPU::BIN(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.N);
 }
 
-void EightDo::CPU::BNN(Pins* pins) {
+void CPU::CPU::BNN(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.N);
 }
 
-void EightDo::CPU::BIC(Pins* pins) {
+void CPU::CPU::BIC(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.C);
 }
 
-void EightDo::CPU::BNC(Pins* pins) {
+void CPU::CPU::BNC(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.C);
 }
 
-void EightDo::CPU::BIO(Pins* pins) {
+void CPU::CPU::BIO(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.O);
 }
 
-void EightDo::CPU::BNO(Pins* pins) {
+void CPU::CPU::BNO(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.O);
 }
 
-void EightDo::CPU::BIL(Pins* pins) {
+void CPU::CPU::BIL(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.L);
 }
 
-void EightDo::CPU::BNL(Pins* pins) {
+void CPU::CPU::BNL(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.L);
 }
 
-void EightDo::CPU::BIG(Pins* pins) {
+void CPU::CPU::BIG(Pins* pins) {
 	this->jump_if_flag(pins, this->flags.G);
 }
 
-void EightDo::CPU::BNG(Pins* pins) {
+void CPU::CPU::BNG(Pins* pins) {
 	this->jump_not_flag(pins, this->flags.G);
 }
 
-void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -450,7 +450,7 @@ void EightDo::CPU::SBL(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -503,7 +503,7 @@ void EightDo::CPU::SBR(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -556,7 +556,7 @@ void EightDo::CPU::ROL(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -609,13 +609,13 @@ void EightDo::CPU::ROR(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::CLC(Pins* pins) {
+void CPU::CPU::CLC(Pins* pins) {
 	this->flags.C = 0;
 	this->state = State::Fetch;
 	this->finish(pins);
 }
 
-void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -661,7 +661,7 @@ void EightDo::CPU::INC(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -707,12 +707,12 @@ void EightDo::CPU::DEC(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::HLT(Pins* pins) {
+void CPU::CPU::HLT(Pins* pins) {
 	this->state = State::Halt;
 	this->finish(pins);
 }
 
-void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
+void CPU::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 	switch(addressing_modes) {
 		case AddressingModes::Immediate:
 			switch(this->cycleCount) {
@@ -780,7 +780,7 @@ void EightDo::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
 	}
 }
 
-void EightDo::CPU::LDO(Pins* pins) {
+void CPU::CPU::LDO(Pins* pins) {
 	switch (this->cycleCount) {
 		case 0:
 			pins->address = this->pc;
@@ -807,12 +807,12 @@ void EightDo::CPU::LDO(Pins* pins) {
 	}
 }
 
-void EightDo::CPU::NOP(Pins* pins) {
+void CPU::CPU::NOP(Pins* pins) {
 	this->state = State::Fetch;
 	this->finish(pins);
 }
 
-void EightDo::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
 	switch (addressing_mode) {
 		case AddressingModes::Immediate:
 			switch(this->cycleCount) {
@@ -878,7 +878,7 @@ void EightDo::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::POP(Pins* pins, AddressingModes addressing_mode) {
+void CPU::CPU::POP(Pins* pins, AddressingModes addressing_mode) {
 	switch(addressing_mode) {
 		case AddressingModes::Absolute:
 			switch(this->cycleCount) {
@@ -929,7 +929,7 @@ void EightDo::CPU::POP(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::JSR(Pins* pins) {
+void CPU::CPU::JSR(Pins* pins) {
 	switch (this->cycleCount) {
 		case 0:
 			pins->address = this->pc;
@@ -968,7 +968,7 @@ void EightDo::CPU::JSR(Pins* pins) {
 	}
 }
 
-void EightDo::CPU::RET(Pins* pins) {
+void CPU::CPU::RET(Pins* pins) {
 	switch(this->cycleCount) {
 		case 0:
 			pins->address.address = (--this->sp.address) | 0xFC00;
