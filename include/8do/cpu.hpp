@@ -107,7 +107,7 @@ namespace EightDo {
 		void STR(Pins* pins, AddressingModes addressing_mode);
 		void ADD(Pins* pins, AddressingModes addressing_mode);
 		void SUB(Pins* pins, AddressingModes addressing_mode);
-		void JMP(Pins* pins);
+		void JMP(Pins* pins, AddressingModes addressing_mode);
 		void BIZ(Pins* pins);
 		void BNZ(Pins* pins);
 		void BIN(Pins* pins);

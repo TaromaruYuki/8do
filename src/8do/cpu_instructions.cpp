@@ -289,23 +289,62 @@ void EightDo::CPU::SUB(Pins* pins, AddressingModes addressing_mode) {
 	}
 }
 
-void EightDo::CPU::JMP(Pins* pins) {
-	switch(this->cycleCount) {
-		case 0:
-			pins->address = this->pc;
-			pins->rw = ReadWrite::Read;
+void EightDo::CPU::JMP(Pins* pins, AddressingModes addressing_mode) {
+	switch (addressing_mode) {
+		case AddressingModes::Absolute:
+			switch (this->cycleCount) {
+				case 0:
+					pins->address = this->pc;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 1:
+					this->temp16 = pins->data << 8;
+					pins->address.address = ++this->pc.address;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 2:
+					this->temp16 |= pins->data;
+					this->pc.value = this->temp16;
+					this->pc.extended = this->metadata.ext_addr;
+					this->state = State::Fetch;
+					this->finish(pins);
+				break;
+			}
 		break;
-		case 1:
-			this->temp16 = pins->data << 8;
-			pins->address.address = ++this->pc.address;
-			pins->rw = ReadWrite::Read;
-		break;
-		case 2:
-			this->temp16 |= pins->data;
-			this->pc.value = this->temp16;
-			this->pc.extended = this->metadata.ext_addr;
-			this->state = State::Fetch;
-			this->finish(pins);
+		case AddressingModes::Pointer:
+			switch (this->cycleCount) {
+				case 0:
+					pins->address = this->pc;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 1:
+					this->tempaddr.value = pins->data << 8;
+					pins->address.address = ++this->pc.address;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 2:
+					this->tempaddr.value |= pins->data;
+					this->tempaddr.extended = this->metadata.ext_addr;
+					pins->address = this->tempaddr;
+				break;
+				case 3:
+					this->temp8 = pins->data & 0x3;
+					pins->address.address = ++this->tempaddr.address;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 4:
+					this->temp16 = pins->data << 8;
+					pins->address.address = ++this->tempaddr.address;
+					pins->rw = ReadWrite::Read;
+				break;
+				case 5:
+					this->temp16 |= pins->data;
+					this->pc.value = this->temp16;
+					this->pc.extended = this->temp8;
+					this->state = State::Fetch;
+					this->finish(pins);
+				break;
+			}
 		break;
 	}
 }
