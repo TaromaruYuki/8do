@@ -4,7 +4,7 @@ jump_table: .WORD $0200
 
 .ORG $0100
 
-str: .ASCIIZ "Hello, World!"
+str: .ASCIIZ "Hi!\n"
 
 .ORG $0200
 

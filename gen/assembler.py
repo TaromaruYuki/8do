@@ -123,6 +123,11 @@ def assemble(file):
                 if escaped:
                     result[addr] = ord(escape_seqs[char])
                     addr += 1
+                    escaped = False
+                    continue
+
+                if not escaped and char == "\\":
+                    escaped = True
                     continue
                 
                 result[addr] = ord(char)
@@ -512,4 +517,5 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    assemble(sys.argv[1])
+    # assemble(sys.argv[1])
+    assemble("gen/hello_world.8do")

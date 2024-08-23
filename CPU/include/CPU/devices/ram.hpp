@@ -10,17 +10,17 @@ namespace CPU::CommonDevices {
 		uint8_t* ram;
 
 	public:
-		RAM(CPU::CPU::ExtendedAddress start, CPU::CPU::ExtendedAddress end, uint8_t* ram_ptr) : start_addr(start), end_addr(end) {
+		RAM(CPU::CPU::ExtendedAddress start, CPU::CPU::ExtendedAddress end, uint8_t** ram_ptr) : start_addr(start), end_addr(end) {
 			this->ram = new uint8_t[this->size()];
-			ram_ptr = this->ram; // TEMP: No ROM class ATM, a rom will be loaded into ram.
+			*ram_ptr = this->ram; // TEMP: No ROM class ATM, a rom will be loaded into ram.
 		}
 
 		size_t size() {
-			return this->end_addr.address - this->start_addr.address;
+			return (size_t)this->end_addr.address - (size_t)this->start_addr.address;
 		}
 
 		size_t relative(CPU::CPU::ExtendedAddress address) {
-			return address.address - this->start_addr.address;
+			return (size_t)address.address - (size_t)this->start_addr.address;
 		}
 
 		CPU::CPU::ExtendedAddress start() {

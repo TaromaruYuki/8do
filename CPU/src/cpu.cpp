@@ -101,7 +101,7 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
 		case 0x4B: SUB(pins, AddressingModes::Absolute); break;
 		case 0x3C: SUB(pins, AddressingModes::Register); break;
 		case 0xE7: JMP(pins, AddressingModes::Absolute); break;
-		case 0xB0: BIZ(pins); break;
+ 		case 0xB0: BIZ(pins); break;
 		case 0xB1: BNZ(pins); break;
 		case 0xB2: BIN(pins); break;
 		case 0xB3: BNN(pins); break;
@@ -186,6 +186,12 @@ void CPU::CPU::jump_if_flag(Pins* pins, bool flag) {
 			pins->rw = ReadWrite::Read;
 		break;
 		case 1:
+			this->temp16 = pins->data << 8;
+			pins->address.address = ++this->pc.address;
+			pins->rw = ReadWrite::Read;
+		break;
+		case 2:
+			this->temp16 |= pins->data;
 			if(flag) {
 				this->pc.value = this->temp16;
 				this->pc.extended = this->metadata.ext_addr;
