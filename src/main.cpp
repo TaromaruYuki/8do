@@ -5,24 +5,10 @@
 
 int main() {
 	EightDo::Emulator emulator;
+	CPU::CommonDevices::ROM* rom = new CPU::CommonDevices::ROM({ .address = 0x0000 }, { .address = 0x7FFF });
+	rom->load_rom("../../../gen/hello_world.bin");
 
-    std::string file = "../../../gen/hello_world.bin";
-	
-    if(!std::filesystem::exists(file)) {
-        std::cerr << "File '" << file << "' does not exist." << std::endl;
-        return 1;
-    }
-
-    std::ifstream fs(file, std::ios::in | std::ios::binary);
-
-    fs.read(reinterpret_cast<char*>(emulator.ram_ptr), 0x3FFFF);
-
-    if(fs.bad()) {
-        std::cerr << "Filestream for file '" << file << "' is bad." << std::endl;
-        return 1;
-    }
-
-    fs.close();
+	CPU::CommonDevices::RAM* ram = new CPU::CommonDevices::RAM({ .address = 0x8000 }, { .address = 0xFFFF });
 
 	emulator.start();
 

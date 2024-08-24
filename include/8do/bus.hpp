@@ -1,0 +1,48 @@
+#include <CPU/device.hpp>
+#include <CPU/devices/ram.hpp>
+#include <CPU/devices/rom.hpp>
+#include <vector>
+
+namespace EightDo {
+	class Bus {
+		std::vector<CPU::Device*> devices;
+
+	public:
+		size_t add_device(CPU::Device* device) {
+			devices.push_back(device);
+			return devices.back();
+		}
+
+		void remove_device(size_t idx) {
+			devices.erase(devices.begin() + idx);
+		}
+
+		CPU::Device::Result read_write(CPU::CPU::ExtendedAddress address) {
+			for (CPU::Device* device : devices) {
+				CPU::Device::Result result = device->read(address);
+
+				if (result.status == CPU::Device::Result::Status::NotMyAddress) {
+					continue;
+				}
+				
+				return result;
+			}
+
+			return { .status = CPU::Device::Result::Status::NoValidDevice, .result = 1 };
+		}
+
+		CPU::Device::Result read_write(CPU::CPU::ExtendedAddress address, uint8_t data) {
+			for (CPU::Device* device : devices) {
+				CPU::Device::Result result = device->write(address, data);
+
+				if (result.status == CPU::Device::Result::Status::NotMyAddress) {
+					continue;
+				}
+
+				return result;
+			}
+
+			return { .status = CPU::Device::Result::Status::NoValidDevice, .result = 1 };
+		}
+	};
+}

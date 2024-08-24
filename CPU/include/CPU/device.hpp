@@ -11,7 +11,10 @@ namespace CPU {
 				NotMyAddress,
 				ReadOnly,
 				WriteOnly,
-				InvalidAddress
+				InvalidAddress,
+				FileNotFound,
+				CannotReadFile,
+				NoValidDevice
 			} status;
 			uint8_t value;
 		};

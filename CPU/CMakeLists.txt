@@ -2,6 +2,7 @@ add_library(CPU STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpu.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpu_instructions.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/CPU/devices/ram.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/CPU/devices/rom.hpp"
 )
 target_include_directories(CPU PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 
