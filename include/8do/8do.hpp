@@ -51,6 +51,11 @@ namespace EightDo {
 							return;
 						}
 
+						if (result.status == CPU::Device::Result::Status::WriteOnly) {
+							this->pins.data = 0;
+							return;
+						}
+
 						std::cerr << "ERROR: " << result.status << std::endl;
 
 						exit(result.value);
@@ -62,6 +67,10 @@ namespace EightDo {
 							if (this->pins.address.address == 0xA000)
 								std::cout << this->pins.data;
 
+							return;
+						}
+
+						if(result.status == CPU::Device::Result::Status::ReadOnly) {
 							return;
 						}
 						

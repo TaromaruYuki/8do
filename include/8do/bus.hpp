@@ -10,7 +10,7 @@ namespace EightDo {
 	public:
 		size_t add_device(CPU::Device* device) {
 			devices.push_back(device);
-			return devices.back();
+			return devices.size() - 1;
 		}
 
 		void remove_device(size_t idx) {
@@ -24,11 +24,15 @@ namespace EightDo {
 				if (result.status == CPU::Device::Result::Status::NotMyAddress) {
 					continue;
 				}
+
+				if (result.status == CPU::Device::Result::Status::WriteOnly) {
+					continue;
+				}
 				
 				return result;
 			}
 
-			return { .status = CPU::Device::Result::Status::NoValidDevice, .result = 1 };
+			return { .status = CPU::Device::Result::Status::NoValidDevice, .value = 1 };
 		}
 
 		CPU::Device::Result read_write(CPU::CPU::ExtendedAddress address, uint8_t data) {
@@ -39,10 +43,14 @@ namespace EightDo {
 					continue;
 				}
 
+				if (result.status == CPU::Device::Result::Status::ReadOnly) {
+					continue;
+				}
+
 				return result;
 			}
 
-			return { .status = CPU::Device::Result::Status::NoValidDevice, .result = 1 };
+			return { .status = CPU::Device::Result::Status::NoValidDevice, .value = 1 };
 		}
 	};
 }

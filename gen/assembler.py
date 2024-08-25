@@ -41,7 +41,7 @@ def assemble(file):
     with open(file, "r") as f:
         text = f.read()
     
-    result = [0x00 for _ in range(0x3FFFF + 1)]
+    result = [0x00 for _ in range(0x7FFF + 1)]
     addr = 0x00000
     comment = False
     org = False

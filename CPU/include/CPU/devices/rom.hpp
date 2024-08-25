@@ -30,6 +30,8 @@ namespace CPU::CommonDevices {
 			}
 
 			fs.close();
+
+			return { .status = Result::Status::Ok, .value = 0 };
 		}
 
 		size_t size() {
