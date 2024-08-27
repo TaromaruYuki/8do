@@ -14,7 +14,22 @@ namespace CPU {
 			Reset,
 			Fetch,
 			Execute,
-			Halt
+			Halt,
+			Interrupt
+		};
+
+		enum struct InterruptStatus {
+			Normal,
+			NonMaskable
+		};
+
+		struct InterruptNumber {
+			uint8_t value : 4;
+			uint8_t _: 4;                                     // Unused
+
+			InterruptNumber(int number) {
+				this->value = number & 0xF;
+			}
 		};
 
 		union ExtendedAddress {
@@ -25,13 +40,22 @@ namespace CPU {
 			};
 
 			uint32_t address : 18;
+
+			ExtendedAddress() = default;
+
+			ExtendedAddress(int number) {
+				this->address = number & 0x3FFFF;
+			}
 		};
 
 		struct Pins {
-			ExtendedAddress address = { .address = 0x00000 };
+			ExtendedAddress address = 0x00000;
 			uint8_t data = 0x00;
 			ReadWrite rw = ReadWrite::Read;
 			bool bus_enable = true;
+			bool irq = false;                                 // Interrupt Request
+			bool nmi = false;                                 // Non-maskable Interrupt
+			bool iak = false;                                 // Interrupt Acknowledge
 		};
 
 	private:
@@ -49,20 +73,21 @@ namespace CPU {
 				uint8_t ext_addr : 2;
 			};
 			uint8_t value;
-		} metadata;                                // Current Instruction Metadata
+		} metadata;                                           // Instruction Metadata (Byte 1)
 
 		union {
 			struct {
-				uint8_t Z : 1;                     // Zero
-				uint8_t N : 1;                     // Negative
-				uint8_t C : 1;                     // Carry
-				uint8_t O : 1;                     // Overflow
-				uint8_t L : 1;                     // Less Than
-				uint8_t G : 1;                     // Greater Than
-				uint8_t _ : 2;		               // Unused
+				uint8_t Z : 1;                                // Zero
+				uint8_t N : 1;                                // Negative
+				uint8_t C : 1;                                // Carry
+				uint8_t O : 1;                                // Overflow
+				uint8_t L : 1;                                // Less Than
+				uint8_t G : 1;                                // Greater Than
+				uint8_t I: 1;                                 // Interrupt Disable
+				uint8_t _ : 1;		                          // Unused
 			};
 			uint8_t value;
-		} flags;				                   // Flags Register
+		} flags;
 
 		union {
 			struct {
@@ -71,26 +96,31 @@ namespace CPU {
 			};
 
 			uint16_t address;
-		} sp;                                      // Stack Pointer
+		} sp;                                                 // Stack Pointer
 						          
-		uint8_t ra = 0;                            // A      Register
-		uint8_t rb = 0;                            // B      Register
-		uint8_t rc = 0;                            // C      Register
-		uint8_t rd = 0;                            // D      Register
-		uint8_t ro = 0;                            // Offset Register
+		uint8_t ra = 0;                                       // A      Register
+		uint8_t rb = 0;                                       // B      Register
+		uint8_t rc = 0;                                       // C      Register
+		uint8_t rd = 0;                                       // D      Register
+		uint8_t ro = 0;                                       // Offset Register
 						          	   
-		ExtendedAddress pc;                        // Program Counter
-		State state;                               // Current State
-		int8_t cycleCount = 0;                     // Current Cycle
+		ExtendedAddress pc;                                   // Program Counter
+		State state;
+		int8_t cycleCount = 0;
 
-		ExtendedAddress tempaddr = {.address = 0}; // Temporary 32-bit value (18 bits used)
-		uint16_t temp16 = 0;                       // Temporary 16-bit value
-		uint8_t temp8 = 0;	                       // Temporary 8-bit value
-		uint8_t opcode = 0;	                       // Current Opcode
-		
+		ExtendedAddress tempaddr = 0;                         // Temporary 18-bit value
+		uint16_t temp16 = 0;                                  // Temporary 16-bit value
+		uint8_t temp8 = 0;	                                  // Temporary 8-bit value
+		uint8_t opcode = 0;	                                  // Current Opcode
+		InterruptStatus int_status = InterruptStatus::Normal;
+		InterruptNumber int_number = 0;
+
 	public:
 		CPU(Pins* pins) { this->reset(pins); };
 		void reset(Pins* pins);
+		bool interrupt();
+		void nmi_interrupt();
+		InterruptStatus interrupt_status() { return this->int_status; }
 		void cycle(Pins* pins);
 		State get_state() const { return this->state; };
 
@@ -137,5 +167,9 @@ namespace CPU {
 		void POP(Pins* pins, AddressingModes addressing_mode);
 		void JSR(Pins* pins);
 		void RET(Pins* pins);
+		void BII(Pins* pins);
+		void BNI(Pins* pins);
+		void CLI(Pins* pins);
+		void SEI(Pins* pins);
 	};
 }

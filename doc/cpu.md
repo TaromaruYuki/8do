@@ -365,3 +365,68 @@ Store a register value into memory.
 | Implied             | 0xEB       | 2         | 3          |
 +---------------------+------------+-----------+------------+
 
+### BII
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Absolute            | 0xD4       | 4         | 3          |
++---------------------+------------+-----------+------------+
+
+### BNI
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Absolute            | 0xD9       | 4         | 3          |
++---------------------+------------+-----------+------------+
+
+### CLI
+
++-------+------------------------+---------+
+| **I** | Interrupt Disable Flag | Cleared |
++-------+------------------------+---------+
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Implied             | 0xD8       | 2         | 1          |
++---------------------+------------+-----------+------------+
+
+### SEI
+
++-------+------------------------+---------+
+| **I** | Interrupt Disable Flag | Set     |
++-------+------------------------+---------+
+
++---------------------+------------+-----------+------------+
+| **Addressing Mode** | **Opcode** | **Bytes** | **Cycles** |
++---------------------+------------+-----------+------------+
+| Implied             | 0xE1       | 2         | 1          |
++---------------------+------------+-----------+------------+
+
+
+## Addressing Modes
+
+<!-- TODO: Write documentation for Addressing Modes -->
+
+## Interrupts
+
+Interrupts work closer to the 8086 than the 6502. There is a interrupt acknoledge pin just like the 8086.
+This pin is a output pin, so it should not be changed by the emulator but the CPU itself.
+
+To request a interrupt, pull the `IRQ` pin low.
+Once the CPU needs the IRQ value, you can send the IRQ value on the data pins. Use the first 4 pins, as the
+interrupt number is only 4 bits (Max 0xF).
+
+Some interrupt numbers are used by the CPU. The table below lists all reserved and free values.
+
++---------+-----------+-----------------+
+| **ID**  | **Usage** | **Description** |
++---------+-----------+-----------------+
+| 0x0     | Reset     | Resets the CPU  |
++---------+-----------+-----------------+
+| 0x1     | NMI       | Non-maskable IR |
++---------+-----------+-----------------+
+| 0x2-0xF | Unused    | Free to use     |
++---------+-----------+-----------------+

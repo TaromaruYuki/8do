@@ -994,3 +994,23 @@ void CPU::CPU::RET(Pins* pins) {
 		break;
 	}
 }
+
+void CPU::CPU::BII(Pins* pins) {
+	this->jump_if_flag(pins, this->flags.I);
+}
+
+void CPU::CPU::BNI(Pins* pins) {
+	this->jump_not_flag(pins, this->flags.I);
+}
+
+void CPU::CPU::CLI(Pins* pins) {
+	this->flags.I = 0;
+	this->state = State::Fetch;
+	this->finish(pins);
+}
+
+void CPU::CPU::SEI(Pins* pins) {
+	this->flags.I = 1;
+	this->state = State::Fetch;
+	this->finish(pins);
+}

@@ -32,6 +32,10 @@ DATA = {
         "POP": {"size": 1, "opcode": {"A": 0x30, "R": 0x41}},
         "JSR": {"size": 1, "opcode": {"A": 0xEF}},
         "RET": {"size": 0, "opcode": 0xEB},
+        "BII": {"size": 1, "opcode": {"A": 0xD4}},
+        "BNI": {"size": 1, "opcode": {"A": 0xD9}},
+        "CLI": {"size": 0, "opcode": 0xD8},
+        "SEI": {"size": 0, "opcode": 0xE1},
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
     "keywords": [".ORG", ".WORD", ".BYTE", ".ASCII", ".ASCIIZ"]
