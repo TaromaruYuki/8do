@@ -176,6 +176,9 @@ uint8_t& CPU::CPU::DecodeRegister(uint8_t reg) {
 		case 0x7:
 			return this->rc;
 			break;
+		default:
+			exit(1);
+			break;
 	}
 }
 

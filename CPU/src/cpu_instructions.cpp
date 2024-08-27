@@ -1,4 +1,4 @@
-#include <cpu/cpu.hpp>
+#include <CPU/cpu.hpp>
 #include <limits>
 
 void CPU::CPU::LDR(Pins* pins, AddressingModes addressing_mode) {
