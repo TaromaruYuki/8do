@@ -23,7 +23,7 @@ namespace CPU {
         virtual Result write(CPU::ExtendedAddress address, uint8_t data) { Result result = { .status = Result::Status::NotMyAddress, .value = 0x00 }; return result; }
         virtual size_t relative(CPU::ExtendedAddress) { return -1; }
         virtual size_t size() { return -1; }
-        virtual CPU::CPU::ExtendedAddress start() { CPU::CPU::ExtendedAddress address = { .address = 0x00 }; return address; }
-        virtual CPU::CPU::ExtendedAddress end() { CPU::CPU::ExtendedAddress address = { .address = 0x00 }; return address; }
+        virtual CPU::CPU::ExtendedAddress start() { CPU::CPU::ExtendedAddress address = 0; return address; }
+        virtual CPU::CPU::ExtendedAddress end() { CPU::CPU::ExtendedAddress address = 0; return address; }
     };
 }

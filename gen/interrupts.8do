@@ -1,0 +1,20 @@
+.ORG $0000
+
+jump_table:
+    .WORD $0100
+    .WORD NMI
+    .WORD int_handler_2
+
+.ORG $0100
+
+main:
+    LDR RA, 0x41
+loop:
+    STR RA, $A000
+    JMP loop
+
+NMI:
+    HLT
+
+int_handler_2:
+    HLT

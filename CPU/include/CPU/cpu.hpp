@@ -19,6 +19,7 @@ namespace CPU {
         };
 
         enum struct InterruptStatus {
+			None,
             Normal,
             NonMaskable
         };
@@ -112,25 +113,25 @@ namespace CPU {
         uint16_t temp16 = 0;                                  // Temporary 16-bit value
         uint8_t temp8 = 0;	                                  // Temporary 8-bit value
         uint8_t opcode = 0;	                                  // Current Opcode
-        InterruptStatus int_status = InterruptStatus::Normal;
+        InterruptStatus int_status = InterruptStatus::None;
         InterruptNumber int_number = 0;
 
-    public:
-        CPU(Pins* pins) { this->reset(pins); };
-        void reset(Pins* pins);
-        bool interrupt();
-        void nmi_interrupt();
-        InterruptStatus interrupt_status() { return this->int_status; }
-        void cycle(Pins* pins);
-        State get_state() const { return this->state; };
+	public:
+		CPU(Pins* pins) { this->reset(pins); };
+		void reset(Pins* pins);
+		InterruptStatus interrupt_status() { return this->int_status; }
+		void cycle(Pins* pins);
+		State get_state() const { return this->state; };
 
     private:
-        void finish(Pins* pins) { this->cycleCount = -1; pins->bus_enable = false; };
+        void finish(Pins* pins);
+
         uint8_t& DecodeRegister(uint8_t reg);
 
         void reset_state_handler(Pins* pins);
         void fetch_state_handler(Pins* pins);
         void execute_state_handler(Pins* pins);
+		void interrupt_state_handler(Pins* pins);
 
         void jump_if_flag(Pins* pins, bool flag);
         void jump_not_flag(Pins* pins, bool flag);

@@ -521,5 +521,5 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    # assemble(sys.argv[1])
-    assemble("gen/hello_world.8do")
+    assemble(sys.argv[1])
+    # assemble("gen/hello_world.8do")
