@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
-            "type": "gdb",
+            "type": "lldb",
             "request": "launch",
-            "target": "./out/build/x64-debug-linux/8do",
-            "cwd": "${workspaceRoot}",
-            "valuesFormatting": "parseText"
+            "name": "Debug",
+            "program": "${workspaceFolder}/out/build/x64-debug/8do.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

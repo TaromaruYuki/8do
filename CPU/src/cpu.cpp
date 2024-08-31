@@ -37,6 +37,10 @@ void CPU::CPU::finish(Pins* pins) {
 }
 
 void CPU::CPU::cycle(Pins* pins) {
+    if(pins->irq && this->int_status == InterruptStatus::None) {
+        this->int_status = InterruptStatus::Normal;
+	}
+
     switch(this->state) {
         case State::Reset:
             this->reset_state_handler(pins);
@@ -95,8 +99,8 @@ void CPU::CPU::fetch_state_handler(Pins* pins) {
             this->metadata.value = pins->data;
             this->pc.address++;
 
-            this->state = State::Execute;
             this->finish(pins);
+            this->state = State::Execute;
             break;
     }
 }
@@ -116,7 +120,7 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
         case 0x4B: SUB(pins, AddressingModes::Absolute); break;
         case 0x3C: SUB(pins, AddressingModes::Register); break;
         case 0xE7: JMP(pins, AddressingModes::Absolute); break;
-         case 0xB0: BIZ(pins); break;
+        case 0xB0: BIZ(pins); break;
         case 0xB1: BNZ(pins); break;
         case 0xB2: BIN(pins); break;
         case 0xB3: BNN(pins); break;
@@ -170,11 +174,46 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
 }
 
 void CPU::CPU::interrupt_state_handler(Pins* pins) {
-    // switch(this->cycleCount) {
-    //     case 0:
-            
-    // }
-    exit(0xD07);
+    switch(this->cycleCount) {
+        case 0:
+            pins->iak = 1;
+            break;
+        case 1:
+            this->int_number = pins->data;
+            pins->address = pins->data * this->int_number.value;
+            pins->rw = ReadWrite::Read;
+        break;
+        case 2:
+            this->temp16 = pins->data << 8;
+            pins->address.address = ++pins->address.address;
+            pins->rw = ReadWrite::Read;
+        break;
+        case 3:
+            this->temp16 |= pins->data;
+            pins->address.address = this->sp.address;
+            pins->data = this->pc.value >> 8;
+            pins->rw = ReadWrite::Write;
+        break;
+        case 4:
+            pins->address.address = ++this->sp.address;
+            pins->data = this->pc.value;
+            pins->rw = ReadWrite::Write;
+        break;
+        case 5:
+            pins->address.address = ++this->sp.address;
+            pins->data = this->pc.extended;
+            pins->rw = ReadWrite::Write;
+        break;
+        case 6:
+            pins->address.address = ++this->sp.address;
+            pins->data = this->flags.value;
+            pins->rw = ReadWrite::Write;
+        break;
+        case 7:
+            this->pc.address = this->temp16;
+            this->finish(pins);
+        break;
+    }
 }
 
 uint8_t& CPU::CPU::DecodeRegister(uint8_t reg) {

@@ -1,5 +1,6 @@
 #include <CPU/lib.hpp>
 #include <8do/bus.hpp>
+#include <Windows.h>
 
 namespace EightDo {
     constexpr float HERTZ = 100000;
@@ -41,6 +42,10 @@ namespace EightDo {
 
             void loop() {
                 this->cpu->cycle(&this->pins);
+
+                if (!this->pins.irq && (GetKeyState(VK_SPACE) & 0x8000)) {
+                    this->pins.irq = true;
+                }
 
                 if (this->pins.bus_enable) {
                     if (this->pins.rw == CPU::CPU::ReadWrite::Read) {

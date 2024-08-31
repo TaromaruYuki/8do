@@ -19,7 +19,7 @@ namespace CPU {
         };
 
         enum struct InterruptStatus {
-			None,
+            None,
             Normal,
             NonMaskable
         };
@@ -116,12 +116,12 @@ namespace CPU {
         InterruptStatus int_status = InterruptStatus::None;
         InterruptNumber int_number = 0;
 
-	public:
-		CPU(Pins* pins) { this->reset(pins); };
-		void reset(Pins* pins);
-		InterruptStatus interrupt_status() { return this->int_status; }
-		void cycle(Pins* pins);
-		State get_state() const { return this->state; };
+    public:
+        CPU(Pins* pins) { this->reset(pins); };
+        void reset(Pins* pins);
+        InterruptStatus interrupt_status() { return this->int_status; }
+        void cycle(Pins* pins);
+        State get_state() const { return this->state; };
 
     private:
         void finish(Pins* pins);
@@ -131,7 +131,7 @@ namespace CPU {
         void reset_state_handler(Pins* pins);
         void fetch_state_handler(Pins* pins);
         void execute_state_handler(Pins* pins);
-		void interrupt_state_handler(Pins* pins);
+        void interrupt_state_handler(Pins* pins);
 
         void jump_if_flag(Pins* pins, bool flag);
         void jump_not_flag(Pins* pins, bool flag);
