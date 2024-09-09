@@ -26,7 +26,7 @@ DATA = {
         "DEC": {"size": 1, "opcode": {"A": 0x0D, "R": 0x1E}},
         "HLT": {"size": 0, "opcode": 0xE8},
         "CMP": {"size": 2, "opcode": {"RI": 0x29, "RA": 0x21, "RR": 0x32}},
-        "LDO": {"size": 2, "opcode": {"RA": 0xDF}},
+        "LDO": {"size": 2, "opcode": {"RA": 0x20, "RR": 0x31}},
         "NOP": {"size": 0, "opcode": 0x00},
         "PSH": {"size": 1, "opcode": {"A": 0x4C, "R": 0x3D, "I": 0x74}},
         "POP": {"size": 1, "opcode": {"A": 0x30, "R": 0x41}},
@@ -502,7 +502,7 @@ def assemble(file):
     for i, byte in enumerate(result):
         if isinstance(byte, str):
             if not (byte in nametable):
-                print(f"Error: {word} not found in nametable")
+                print(f"Error: \"{byte}\" not found in nametable. Address: {hex(i)}")
                 exit(1)
 
             value = nametable[byte]
@@ -521,5 +521,5 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    assemble(sys.argv[1])
-    # assemble("gen/hello_world.8do")
+    # assemble(sys.argv[1])
+    assemble("gen/interrupts.8do")

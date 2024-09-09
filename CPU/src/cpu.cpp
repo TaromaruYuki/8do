@@ -33,6 +33,10 @@ void CPU::CPU::finish(Pins* pins) {
         return;
     }
 
+    if (this->state == State::Halt) {
+        return;
+    }
+
     this->state = State::Fetch;
 }
 
@@ -149,7 +153,8 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
         case 0x29: CMP(pins, AddressingModes::Immediate); break;
         case 0x21: CMP(pins, AddressingModes::Absolute); break;
         case 0x32: CMP(pins, AddressingModes::Register); break;
-        case 0xDF: LDO(pins); break;
+        case 0x20: LDO(pins, AddressingModes::Absolute); break;
+        case 0x31: LDO(pins, AddressingModes::Register); break;
         case 0x00: NOP(pins); break;
         case 0x74: PSH(pins, AddressingModes::Immediate); break;
         case 0x4C: PSH(pins, AddressingModes::Absolute); break;
@@ -179,8 +184,10 @@ void CPU::CPU::interrupt_state_handler(Pins* pins) {
             pins->iak = 1;
             break;
         case 1:
+            pins->bus_enable = true;
+            pins->iak = 0;
             this->int_number = pins->data;
-            pins->address = pins->data * this->int_number.value;
+            pins->address = this->int_number.value * 2;
             pins->rw = ReadWrite::Read;
         break;
         case 2:
@@ -211,6 +218,7 @@ void CPU::CPU::interrupt_state_handler(Pins* pins) {
         break;
         case 7:
             this->pc.address = this->temp16;
+            this->int_status = InterruptStatus::None;
             this->finish(pins);
         break;
     }

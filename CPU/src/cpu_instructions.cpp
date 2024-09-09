@@ -751,28 +751,38 @@ void CPU::CPU::CMP(Pins* pins, AddressingModes addressing_modes) {
     }
 }
 
-void CPU::CPU::LDO(Pins* pins) {
-    switch (this->cycleCount) {
-        case 0:
-            pins->address = this->pc;
-            pins->rw = ReadWrite::Read;
+void CPU::CPU::LDO(Pins* pins, AddressingModes addressing_mode) {
+    switch (addressing_mode) {
+        case AddressingModes::Absolute:
+            switch (this->cycleCount) {
+                case 0:
+                    pins->address = this->pc;
+                    pins->rw = ReadWrite::Read;
+                break;
+                case 1:
+                    this->temp16 = pins->data << 8;
+                    pins->address.address = ++this->pc.address;
+                    pins->rw = ReadWrite::Read;
+                break;
+                case 2:
+                    this->temp16 |= pins->data;
+                    pins->address.value = this->temp16;
+                    pins->address.extended = this->metadata.ext_addr;
+                    pins->address.address += this->ro;
+                    pins->rw = ReadWrite::Read;
+                break;
+                case 3:
+                    this->DecodeRegister(this->metadata.reg0) = pins->data;
+                    this->pc.address++;
+                    this->finish(pins);
+                break;
+            }
         break;
-        case 1:
-            this->temp16 = pins->data << 8;
-            pins->address.address = ++this->pc.address;
-            pins->rw = ReadWrite::Read;
-        break;
-        case 2:
-            this->temp16 |= pins->data;
-            pins->address.value = this->temp16;
-            pins->address.extended = this->metadata.ext_addr;
-            pins->address.address += this->ro;
-            pins->rw = ReadWrite::Read;
-        break;
-        case 3:
-            this->DecodeRegister(this->metadata.reg0) = pins->data;
-            this->pc.address++;
-            this->finish(pins);
+        case AddressingModes::Register:
+           switch(this->cycleCount) {
+               case 0:
+                   pins->address = this->DecodeRegister(this->metadata.reg1) + this->ro;
+           }
         break;
     }
 }

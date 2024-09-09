@@ -162,7 +162,7 @@ namespace CPU {
         void DEC(Pins* pins, AddressingModes addressing_mode);
         void HLT(Pins* pins);
         void CMP(Pins* pins, AddressingModes addressing_mode);
-        void LDO(Pins* pins);
+        void LDO(Pins* pins, AddressingModes addressing_mode);
         void NOP(Pins* pins);
         void PSH(Pins* pins, AddressingModes addressing_mode);
         void POP(Pins* pins, AddressingModes addressing_mode);

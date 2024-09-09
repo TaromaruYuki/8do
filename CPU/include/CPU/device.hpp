@@ -7,14 +7,14 @@ namespace CPU {
     struct Device {
         struct Result {
             enum Status {
-                Ok,
-                NotMyAddress,
-                ReadOnly,
-                WriteOnly,
-                InvalidAddress,
-                FileNotFound,
-                CannotReadFile,
-                NoValidDevice
+                Ok = 0,
+                NotMyAddress = 1,
+                ReadOnly = 2,
+                WriteOnly = 3,
+                InvalidAddress = 4,
+                FileNotFound = 5,
+                CannotReadFile = 6,
+                NoValidDevice = 7
             } status;
             uint8_t value;
         };

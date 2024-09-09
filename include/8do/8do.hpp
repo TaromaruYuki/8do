@@ -43,8 +43,11 @@ namespace EightDo {
             void loop() {
                 this->cpu->cycle(&this->pins);
 
-                if (!this->pins.irq && (GetKeyState(VK_SPACE) & 0x8000)) {
-                    this->pins.irq = true;
+                if (GetKeyState(VK_SPACE) & 0x80) {
+                    while (GetKeyState(VK_SPACE) & 0x80);
+                    if (!this->pins.irq) {
+                        this->pins.irq = true;
+                    }
                 }
 
                 if (this->pins.bus_enable) {
@@ -83,6 +86,11 @@ namespace EightDo {
 
                         exit(result.value);
                     }
+                }
+
+                if (this->pins.iak) {
+                    this->pins.data = 2;
+                    this->pins.irq = false;
                 }
             }
     };

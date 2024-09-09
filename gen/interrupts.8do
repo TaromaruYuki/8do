@@ -4,6 +4,25 @@ jump_table:
     .WORD $0100
     .WORD NMI
     .WORD int_handler_2
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+    .WORD $FFFF
+
+.ORG $0020
+
+int_text: .ASCIIZ "INT"
+
+nmi_text: .ASCIIZ "NMI"
 
 .ORG $0100
 
@@ -13,8 +32,32 @@ loop:
     STR RA, $A000
     JMP loop
 
+print_ptr:
+	LDR RO, 0x00
+print_ptr_loop:
+	LDO RB, RA
+	STR RB, $A000
+	CMP RB, 0x00
+	BIZ print_ptr_end
+	INC RO
+	JMP print_ptr_loop
+print_ptr_end:
+	RET
+
 NMI:
+    SEI
+    LDR RA, >nmi_text
+
+    JSR print_ptr
+
+    CLI
     HLT
 
 int_handler_2:
+    SEI
+    LDR RA, >int_text
+
+    JSR print_ptr
+
+    CLI
     HLT
