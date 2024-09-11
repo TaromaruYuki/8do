@@ -170,6 +170,7 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
         case 0xD9: BNI(pins); break;
         case 0xD8: CLI(pins); break;
         case 0xE1: SEI(pins); break;
+        case 0x0F: RTI(pins); break;
         default: {
             std::cerr << "Unknown opcode: 0x" << std::hex << (uint16_t)this->opcode << std::endl << "PC: 0x" << std::hex << this->pc.address - 2 << std::endl;
 

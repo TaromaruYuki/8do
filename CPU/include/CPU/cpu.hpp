@@ -172,5 +172,6 @@ namespace CPU {
         void BNI(Pins* pins);
         void CLI(Pins* pins);
         void SEI(Pins* pins);
+        void RTI(Pins* pins);
     };
 }

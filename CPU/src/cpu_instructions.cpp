@@ -780,8 +780,14 @@ void CPU::CPU::LDO(Pins* pins, AddressingModes addressing_mode) {
         break;
         case AddressingModes::Register:
            switch(this->cycleCount) {
-               case 0:
+               case 0: 
                    pins->address = this->DecodeRegister(this->metadata.reg1) + this->ro;
+                   pins->rw = ReadWrite::Read;
+               break;
+               case 1:
+                   this->DecodeRegister(this->metadata.reg0) = pins->data;
+                   this->finish(pins);
+                break;
            }
         break;
     }
@@ -983,4 +989,27 @@ void CPU::CPU::CLI(Pins* pins) {
 void CPU::CPU::SEI(Pins* pins) {
     this->flags.I = 1;
     this->finish(pins);
+}
+
+void CPU::CPU::RTI(Pins* pins) {
+    switch(this->cycleCount) {
+        case 0:
+            pins->address.address = (--this->sp.address) | 0xFC00;
+            pins->rw = ReadWrite::Read;
+        break;
+        case 1:
+        case 2:
+        case 3:
+            this->flags.value = pins->data;
+            pins->address.address = (--this->sp.address) | 0xFC00;
+            pins->rw = ReadWrite::Read;
+            break;
+        case 4:
+            this->temp16 |= pins->data << 8;
+            this->pc.value = this->temp16;
+            this->pc.extended = this->temp8;
+
+            this->finish(pins);
+        break;
+    }
 }

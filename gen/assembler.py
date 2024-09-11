@@ -36,6 +36,7 @@ DATA = {
         "BNI": {"size": 1, "opcode": {"A": 0xD9}},
         "CLI": {"size": 0, "opcode": 0xD8},
         "SEI": {"size": 0, "opcode": 0xE1},
+        "RTI": {"size": 0, "opcode": 0x0F}
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
     "keywords": [".ORG", ".WORD", ".BYTE", ".ASCII", ".ASCIIZ"]

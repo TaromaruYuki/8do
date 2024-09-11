@@ -46,18 +46,18 @@ print_ptr_end:
 
 NMI:
     SEI
-    LDR RA, >nmi_text
+    LDR RA, 0x24
+    PSH RA
 
     JSR print_ptr
-
-    CLI
-    HLT
+    POP RA
+    RTI
 
 int_handler_2:
     SEI
-    LDR RA, >int_text
+    LDR RA, 0x20
+    PSH RA
 
     JSR print_ptr
-
-    CLI
-    HLT
+    POP RA
+    RTI

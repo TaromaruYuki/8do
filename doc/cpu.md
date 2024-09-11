@@ -430,3 +430,12 @@ Some interrupt numbers are used by the CPU. The table below lists all reserved a
 +---------+-----------+-----------------+
 | 0x2-0xF | Unused    | Free to use     |
 +---------+-----------+-----------------+
+
+<!--
+Interrupt Push  Interrupt Return
+---             ---
+Upper PC        Flags
+Lower PC        Extended PC
+Extended PC     Lower PC
+Flags           Upper PC
+-->
