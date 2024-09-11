@@ -43,7 +43,9 @@ void CPU::CPU::finish(Pins* pins) {
 void CPU::CPU::cycle(Pins* pins) {
     if(pins->irq && this->int_status == InterruptStatus::None) {
         this->int_status = InterruptStatus::Normal;
-	}
+	} else if(pins->nmi && this->int_status == InterruptStatus::None) {
+        this->int_status = InterruptStatus::NonMaskable;
+    }
 
     switch(this->state) {
         case State::Reset:
@@ -180,48 +182,96 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
 }
 
 void CPU::CPU::interrupt_state_handler(Pins* pins) {
-    switch(this->cycleCount) {
-        case 0:
-            pins->iak = 1;
+    switch (this->int_status) {
+        case InterruptStatus::Normal:
+            switch(this->cycleCount) {
+                case 0:
+                    pins->iak = 1;
+                    break;
+                case 1:
+                    pins->bus_enable = true;
+                    pins->iak = 0;
+                    this->int_number = pins->data;
+                    pins->address = this->int_number.value * 2;
+                    pins->rw = ReadWrite::Read;
+                break;
+                case 2:
+                    this->temp16 = pins->data << 8;
+                    pins->address.address = ++pins->address.address;
+                    pins->rw = ReadWrite::Read;
+                break;
+                case 3:
+                    this->temp16 |= pins->data;
+                    pins->address.address = this->sp.address;
+                    pins->data = this->pc.value >> 8;
+                    pins->rw = ReadWrite::Write;
+                break;
+                case 4:
+                    pins->address.address = ++this->sp.address;
+                    pins->data = this->pc.value;
+                    pins->rw = ReadWrite::Write;
+                break;
+                case 5:
+                    pins->address.address = ++this->sp.address;
+                    pins->data = this->pc.extended;
+                    pins->rw = ReadWrite::Write;
+                break;
+                case 6:
+                    pins->address.address = ++this->sp.address;
+                    pins->data = this->flags.value;
+                    pins->rw = ReadWrite::Write;
+                break;
+                case 7:
+                    this->pc.address = this->temp16;
+                    this->int_status = InterruptStatus::None;
+                    this->finish(pins);
+                break;
+            }
+        break;
+        case InterruptStatus::NonMaskable:
+            switch (this->cycleCount) {
+            case 0:
+                pins->iak = 1;
+                break;
+            case 1:
+                pins->bus_enable = true;
+                pins->iak = 0;
+                pins->address = 0x02;
+                pins->rw = ReadWrite::Read;
+                break;
+            case 2:
+                this->temp16 = pins->data << 8;
+                pins->address.address = ++pins->address.address;
+                pins->rw = ReadWrite::Read;
+                break;
+            case 3:
+                this->temp16 |= pins->data;
+                pins->address.address = this->sp.address;
+                pins->data = this->pc.value >> 8;
+                pins->rw = ReadWrite::Write;
+                break;
+            case 4:
+                pins->address.address = ++this->sp.address;
+                pins->data = this->pc.value;
+                pins->rw = ReadWrite::Write;
+                break;
+            case 5:
+                pins->address.address = ++this->sp.address;
+                pins->data = this->pc.extended;
+                pins->rw = ReadWrite::Write;
+                break;
+            case 6:
+                pins->address.address = ++this->sp.address;
+                pins->data = this->flags.value;
+                pins->rw = ReadWrite::Write;
+                break;
+            case 7:
+                this->pc.address = this->temp16;
+                this->int_status = InterruptStatus::None;
+                this->finish(pins);
+                break;
+            }
             break;
-        case 1:
-            pins->bus_enable = true;
-            pins->iak = 0;
-            this->int_number = pins->data;
-            pins->address = this->int_number.value * 2;
-            pins->rw = ReadWrite::Read;
-        break;
-        case 2:
-            this->temp16 = pins->data << 8;
-            pins->address.address = ++pins->address.address;
-            pins->rw = ReadWrite::Read;
-        break;
-        case 3:
-            this->temp16 |= pins->data;
-            pins->address.address = this->sp.address;
-            pins->data = this->pc.value >> 8;
-            pins->rw = ReadWrite::Write;
-        break;
-        case 4:
-            pins->address.address = ++this->sp.address;
-            pins->data = this->pc.value;
-            pins->rw = ReadWrite::Write;
-        break;
-        case 5:
-            pins->address.address = ++this->sp.address;
-            pins->data = this->pc.extended;
-            pins->rw = ReadWrite::Write;
-        break;
-        case 6:
-            pins->address.address = ++this->sp.address;
-            pins->data = this->flags.value;
-            pins->rw = ReadWrite::Write;
-        break;
-        case 7:
-            this->pc.address = this->temp16;
-            this->int_status = InterruptStatus::None;
-            this->finish(pins);
-        break;
     }
 }
 

@@ -20,17 +20,14 @@ jump_table:
 
 .ORG $0020
 
-int_text: .ASCIIZ "INT"
+int_text: .ASCIIZ "INT "
 
-nmi_text: .ASCIIZ "NMI"
+nmi_text: .ASCIIZ "NMI "
 
 .ORG $0100
 
 main:
-    LDR RA, 0x41
-loop:
-    STR RA, $A000
-    JMP loop
+    JMP main
 
 print_ptr:
 	LDR RO, 0x00
@@ -46,8 +43,8 @@ print_ptr_end:
 
 NMI:
     SEI
-    LDR RA, 0x24
     PSH RA
+    LDR RA, 0x24
 
     JSR print_ptr
     POP RA
@@ -55,8 +52,8 @@ NMI:
 
 int_handler_2:
     SEI
-    LDR RA, 0x20
     PSH RA
+    LDR RA, 0x20
 
     JSR print_ptr
     POP RA

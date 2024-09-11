@@ -48,6 +48,11 @@ namespace EightDo {
                     if (!this->pins.irq) {
                         this->pins.irq = true;
                     }
+                } else if (GetKeyState(VK_RETURN) & 0x80) {
+                    while (GetKeyState(VK_RETURN) & 0x80);
+                    if (!this->pins.irq) {
+                        this->pins.nmi = true;
+                    }
                 }
 
                 if (this->pins.bus_enable) {
@@ -89,8 +94,12 @@ namespace EightDo {
                 }
 
                 if (this->pins.iak) {
-                    this->pins.data = 2;
-                    this->pins.irq = false;
+                    if (this->pins.irq) {
+                        this->pins.data = 2;
+                        this->pins.irq = false;
+                    } else {
+                        this->pins.nmi = false;
+                    }
                 }
             }
     };

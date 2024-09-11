@@ -66,6 +66,9 @@ def assemble(file):
         for word in line.split(" "):
             if word == "" or word == "\n" or word == "\t":
                 continue
+
+            #if word == "\"\n":
+            #    word
         
             if word[0] == ";":
                 comment = True

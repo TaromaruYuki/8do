@@ -852,7 +852,6 @@ void CPU::CPU::PSH(Pins* pins, AddressingModes addressing_mode) {
                 break;
                 case 1:
                     this->sp.value++;
-                    this->pc.address++;
                     this->finish(pins);
                 break;
             }
@@ -992,22 +991,29 @@ void CPU::CPU::SEI(Pins* pins) {
 }
 
 void CPU::CPU::RTI(Pins* pins) {
-    switch(this->cycleCount) {
+    switch (this->cycleCount) {
         case 0:
-            pins->address.address = (--this->sp.address) | 0xFC00;
+            pins->address.address = this->sp.address | 0xFC00;
             pins->rw = ReadWrite::Read;
         break;
         case 1:
-        case 2:
-        case 3:
             this->flags.value = pins->data;
             pins->address.address = (--this->sp.address) | 0xFC00;
             pins->rw = ReadWrite::Read;
             break;
+        case 2:
+            this->tempaddr.extended = pins->data;
+            pins->address.address = (--this->sp.address) | 0xFC00;
+            pins->rw = ReadWrite::Read;
+        break;
+        case 3:
+            this->tempaddr.value = pins->data;
+            pins->address.address = (--this->sp.address) | 0xFC00;
+            pins->rw = ReadWrite::Read;
+        break;
         case 4:
-            this->temp16 |= pins->data << 8;
-            this->pc.value = this->temp16;
-            this->pc.extended = this->temp8;
+            this->tempaddr.value |= pins->data << 8;
+            this->pc = this->tempaddr;
 
             this->finish(pins);
         break;
