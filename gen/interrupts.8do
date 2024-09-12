@@ -44,7 +44,7 @@ print_ptr_end:
 NMI:
     SEI
     PSH RA
-    LDR RA, 0x24
+    LDR RA, 0x25
 
     JSR print_ptr
     POP RA

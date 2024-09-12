@@ -50,7 +50,7 @@ namespace EightDo {
                     }
                 } else if (GetKeyState(VK_RETURN) & 0x80) {
                     while (GetKeyState(VK_RETURN) & 0x80);
-                    if (!this->pins.irq) {
+                    if (!this->pins.nmi) {
                         this->pins.nmi = true;
                     }
                 }

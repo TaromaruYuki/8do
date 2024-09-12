@@ -66,9 +66,6 @@ def assemble(file):
         for word in line.split(" "):
             if word == "" or word == "\n" or word == "\t":
                 continue
-
-            #if word == "\"\n":
-            #    word
         
             if word[0] == ";":
                 comment = True
@@ -115,6 +112,14 @@ def assemble(file):
         if ascii_:
             escaped = False
             escape_seqs = {"n": "\n", "\\": "\\", "\"": "\""}
+
+            if word == "\"":
+                if z:
+                    result[addr] = 0x00
+                    addr += 1
+                    z = False
+                ascii_ = False
+                continue
             
             if word[0] == '"':
                 word = word[1:]
@@ -525,5 +530,4 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    # assemble(sys.argv[1])
-    assemble("gen/interrupts.8do")
+    assemble(sys.argv[1])
