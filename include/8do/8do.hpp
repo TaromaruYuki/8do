@@ -43,18 +43,6 @@ namespace EightDo {
             void loop() {
                 this->cpu->cycle(&this->pins);
 
-                if (GetKeyState(VK_SPACE) & 0x80) {
-                    while (GetKeyState(VK_SPACE) & 0x80);
-                    if (!this->pins.irq) {
-                        this->pins.irq = true;
-                    }
-                } else if (GetKeyState(VK_RETURN) & 0x80) {
-                    while (GetKeyState(VK_RETURN) & 0x80);
-                    if (!this->pins.nmi) {
-                        this->pins.nmi = true;
-                    }
-                }
-
                 if (this->pins.bus_enable) {
                     if (this->pins.rw == CPU::CPU::ReadWrite::Read) {
                         CPU::Device::Result result = this->read_write(this->pins.address);
@@ -90,15 +78,6 @@ namespace EightDo {
                         std::cerr << "ERROR: " << result.status << std::endl;
 
                         exit(result.value);
-                    }
-                }
-
-                if (this->pins.iak) {
-                    if (this->pins.irq) {
-                        this->pins.data = 2;
-                        this->pins.irq = false;
-                    } else {
-                        this->pins.nmi = false;
                     }
                 }
             }
