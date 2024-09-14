@@ -7,7 +7,6 @@ add_library(${PROJECT_NAME} STATIC
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/CPU/devices/rom.hpp"
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC EightDoCommon)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/" "${CMAKE_CURRENT_SOURCE_DIR}/../common/include")
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
