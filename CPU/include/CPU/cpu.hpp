@@ -1,64 +1,10 @@
 #pragma once
 
 #include <inttypes.h>
+#include <8do/common.hpp>
 
 namespace CPU {
     class CPU {
-    public:
-        enum struct ReadWrite {
-            Read,
-            Write
-        };
-
-        enum struct State {
-            Reset,
-            Fetch,
-            Execute,
-            Halt,
-            Interrupt
-        };
-
-        enum struct InterruptStatus {
-            None,
-            Normal,
-            NonMaskable
-        };
-
-        struct InterruptNumber {
-            uint8_t value : 4;
-            uint8_t _: 4;                                     // Unused
-
-            InterruptNumber(int number) {
-                this->value = number & 0xF;
-            }
-        };
-
-        union ExtendedAddress {
-            struct {
-                uint32_t value : 16;
-                uint32_t extended : 2;
-                uint32_t unused : 14;
-            };
-
-            uint32_t address : 18;
-
-            ExtendedAddress() = default;
-
-            ExtendedAddress(int number) {
-                this->address = number & 0x3FFFF;
-            }
-        };
-
-        struct Pins {
-            ExtendedAddress address = 0x00000;
-            uint8_t data = 0x00;
-            ReadWrite rw = ReadWrite::Read;
-            bool bus_enable = true;
-            bool irq = false;                                 // Interrupt Request
-            bool nmi = false;                                 // Non-maskable Interrupt
-            bool iak = false;                                 // Interrupt Acknowledge
-        };
-
     private:
         enum struct AddressingModes {
             Immediate,
@@ -105,73 +51,73 @@ namespace CPU {
         uint8_t rd = 0;                                       // D      Register
         uint8_t ro = 0;                                       // Offset Register
                                          
-        ExtendedAddress pc;                                   // Program Counter
-        State state;
+        EightDo::Common::ExtendedAddress pc;                                   // Program Counter
+        EightDo::Common::State state;
         int8_t cycleCount = 0;
 
-        ExtendedAddress tempaddr = 0;                         // Temporary 18-bit value
+        EightDo::Common::ExtendedAddress tempaddr = 0;                         // Temporary 18-bit value
         uint16_t temp16 = 0;                                  // Temporary 16-bit value
         uint8_t temp8 = 0;	                                  // Temporary 8-bit value
         uint8_t opcode = 0;	                                  // Current Opcode
-        InterruptStatus int_status = InterruptStatus::None;
-        InterruptNumber int_number = 0;
+        EightDo::Common::InterruptStatus int_status = EightDo::Common::InterruptStatus::None;
+        EightDo::Common::InterruptNumber int_number = 0;
 
     public:
-        CPU(Pins* pins) { this->reset(pins); };
-        void reset(Pins* pins);
-        InterruptStatus interrupt_status() { return this->int_status; }
-        void cycle(Pins* pins);
-        State get_state() const { return this->state; };
+        CPU(EightDo::Common::Pins* pins) { this->reset(pins); };
+        void reset(EightDo::Common::Pins* pins);
+        EightDo::Common::InterruptStatus interrupt_status() { return this->int_status; }
+        void cycle(EightDo::Common::Pins* pins);
+        EightDo::Common::State get_state() const { return this->state; };
 
     private:
-        void finish(Pins* pins);
+        void finish(EightDo::Common::Pins* pins);
 
         uint8_t& DecodeRegister(uint8_t reg);
 
-        void reset_state_handler(Pins* pins);
-        void fetch_state_handler(Pins* pins);
-        void execute_state_handler(Pins* pins);
-        void interrupt_state_handler(Pins* pins);
+        void reset_state_handler(EightDo::Common::Pins* pins);
+        void fetch_state_handler(EightDo::Common::Pins* pins);
+        void execute_state_handler(EightDo::Common::Pins* pins);
+        void interrupt_state_handler(EightDo::Common::Pins* pins);
 
-        void jump_if_flag(Pins* pins, bool flag);
-        void jump_not_flag(Pins* pins, bool flag);
+        void jump_if_flag(EightDo::Common::Pins* pins, bool flag);
+        void jump_not_flag(EightDo::Common::Pins* pins, bool flag);
 
-        void LDR(Pins* pins, AddressingModes addressing_mode);
-        void STR(Pins* pins, AddressingModes addressing_mode);
-        void ADD(Pins* pins, AddressingModes addressing_mode);
-        void SUB(Pins* pins, AddressingModes addressing_mode);
-        void JMP(Pins* pins, AddressingModes addressing_mode);
-        void BIZ(Pins* pins);
-        void BNZ(Pins* pins);
-        void BIN(Pins* pins);
-        void BNN(Pins* pins);
-        void BIC(Pins* pins);
-        void BNC(Pins* pins);
-        void BIO(Pins* pins);
-        void BNO(Pins* pins);
-        void BIL(Pins* pins);
-        void BNL(Pins* pins);
-        void BIG(Pins* pins);
-        void BNG(Pins* pins);
-        void SBL(Pins* pins, AddressingModes addressing_mode);
-        void SBR(Pins* pins, AddressingModes addressing_mode);
-        void ROL(Pins* pins, AddressingModes addressing_mode);
-        void ROR(Pins* pins, AddressingModes addressing_mode);
-        void CLC(Pins* pins);
-        void INC(Pins* pins, AddressingModes addressing_mode);
-        void DEC(Pins* pins, AddressingModes addressing_mode);
-        void HLT(Pins* pins);
-        void CMP(Pins* pins, AddressingModes addressing_mode);
-        void LDO(Pins* pins, AddressingModes addressing_mode);
-        void NOP(Pins* pins);
-        void PSH(Pins* pins, AddressingModes addressing_mode);
-        void POP(Pins* pins, AddressingModes addressing_mode);
-        void JSR(Pins* pins);
-        void RET(Pins* pins);
-        void BII(Pins* pins);
-        void BNI(Pins* pins);
-        void CLI(Pins* pins);
-        void SEI(Pins* pins);
-        void RTI(Pins* pins);
+        void LDR(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void STR(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void ADD(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void SUB(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void JMP(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void BIZ(EightDo::Common::Pins* pins);
+        void BNZ(EightDo::Common::Pins* pins);
+        void BIN(EightDo::Common::Pins* pins);
+        void BNN(EightDo::Common::Pins* pins);
+        void BIC(EightDo::Common::Pins* pins);
+        void BNC(EightDo::Common::Pins* pins);
+        void BIO(EightDo::Common::Pins* pins);
+        void BNO(EightDo::Common::Pins* pins);
+        void BIL(EightDo::Common::Pins* pins);
+        void BNL(EightDo::Common::Pins* pins);
+        void BIG(EightDo::Common::Pins* pins);
+        void BNG(EightDo::Common::Pins* pins);
+        void SBL(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void SBR(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void ROL(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void ROR(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void CLC(EightDo::Common::Pins* pins);
+        void INC(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void DEC(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void HLT(EightDo::Common::Pins* pins);
+        void CMP(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void LDO(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void NOP(EightDo::Common::Pins* pins);
+        void PSH(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void POP(EightDo::Common::Pins* pins, AddressingModes addressing_mode);
+        void JSR(EightDo::Common::Pins* pins);
+        void RET(EightDo::Common::Pins* pins);
+        void BII(EightDo::Common::Pins* pins);
+        void BNI(EightDo::Common::Pins* pins);
+        void CLI(EightDo::Common::Pins* pins);
+        void SEI(EightDo::Common::Pins* pins);
+        void RTI(EightDo::Common::Pins* pins);
     };
 }

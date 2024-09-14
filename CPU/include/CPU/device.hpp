@@ -19,11 +19,11 @@ namespace CPU {
             uint8_t value;
         };
 
-        virtual Result read(CPU::ExtendedAddress address) { Result result = { .status = Result::Status::NotMyAddress, .value = 0x00 }; return result; }
-        virtual Result write(CPU::ExtendedAddress address, uint8_t data) { Result result = { .status = Result::Status::NotMyAddress, .value = 0x00 }; return result; }
-        virtual size_t relative(CPU::ExtendedAddress) { return -1; }
+        virtual Result read(EightDo::Common::ExtendedAddress address) { Result result = { .status = Result::Status::NotMyAddress, .value = 0x00 }; return result; }
+        virtual Result write(EightDo::Common::ExtendedAddress address, uint8_t data) { Result result = { .status = Result::Status::NotMyAddress, .value = 0x00 }; return result; }
+        virtual size_t relative(EightDo::Common::ExtendedAddress) { return -1; }
         virtual size_t size() { return -1; }
-        virtual CPU::CPU::ExtendedAddress start() { CPU::CPU::ExtendedAddress address = 0; return address; }
-        virtual CPU::CPU::ExtendedAddress end() { CPU::CPU::ExtendedAddress address = 0; return address; }
+        virtual EightDo::Common::ExtendedAddress start() { EightDo::Common::ExtendedAddress address = 0; return address; }
+        virtual EightDo::Common::ExtendedAddress end() { EightDo::Common::ExtendedAddress address = 0; return address; }
     };
 }

@@ -7,7 +7,7 @@ namespace EightDo {
 
     class Emulator : public Bus {
         CPU::CPU* cpu;
-        CPU::CPU::Pins pins;
+        EightDo::Common::Pins pins;
 
         public:
             union Options {
@@ -27,7 +27,7 @@ namespace EightDo {
 
             void start() {
                 while(1) {
-                    if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == CPU::CPU::State::Halt) {
+                    if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == EightDo::Common::State::Halt) {
                         break;
                     }
 
@@ -44,7 +44,7 @@ namespace EightDo {
                 this->cpu->cycle(&this->pins);
 
                 if (this->pins.bus_enable) {
-                    if (this->pins.rw == CPU::CPU::ReadWrite::Read) {
+                    if (this->pins.rw == EightDo::Common::ReadWrite::Read) {
                         CPU::Device::Result result = this->read_write(this->pins.address);
 
                         if(result.status == CPU::Device::Result::Status::Ok) {

@@ -1,7 +1,7 @@
 #include <CPU/cpu.hpp>
 #include <iostream>
 
-void CPU::CPU::reset(Pins* pins) {
+void CPU::CPU::reset(EightDo::Common::Pins* pins) {
     this->ra = 0;
     this->rb = 0;
     this->rc = 0;
@@ -15,51 +15,51 @@ void CPU::CPU::reset(Pins* pins) {
     this->flags.value = 0;
     this->metadata.value = 0;
 
-    this->state = State::Reset;
+    this->state = EightDo::Common::State::Reset;
     this->cycleCount = 0;
 
     pins->address.address = 0;
     pins->data = 0;
     pins->bus_enable = true;
-    pins->rw = ReadWrite::Read;
+    pins->rw = EightDo::Common::ReadWrite::Read;
 }
 
-void CPU::CPU::finish(Pins* pins) { 
+void CPU::CPU::finish(EightDo::Common::Pins* pins) { 
     this->cycleCount = -1;
     pins->bus_enable = false;
 
-    if(this->int_status != InterruptStatus::None) {
-        this->state = State::Interrupt;
+    if(this->int_status != EightDo::Common::InterruptStatus::None) {
+        this->state = EightDo::Common::State::Interrupt;
         return;
     }
 
-    if (this->state == State::Halt) {
+    if (this->state == EightDo::Common::State::Halt) {
         return;
     }
 
-    this->state = State::Fetch;
+    this->state = EightDo::Common::State::Fetch;
 }
 
-void CPU::CPU::cycle(Pins* pins) {
-    if(pins->irq && this->int_status == InterruptStatus::None) {
-        this->int_status = InterruptStatus::Normal;
-	} else if(pins->nmi && this->int_status == InterruptStatus::None) {
-        this->int_status = InterruptStatus::NonMaskable;
+void CPU::CPU::cycle(EightDo::Common::Pins* pins) {
+    if(pins->irq && this->int_status == EightDo::Common::InterruptStatus::None) {
+        this->int_status = EightDo::Common::InterruptStatus::Normal;
+	} else if(pins->nmi && this->int_status == EightDo::Common::InterruptStatus::None) {
+        this->int_status = EightDo::Common::InterruptStatus::NonMaskable;
     }
 
     switch(this->state) {
-        case State::Reset:
+        case EightDo::Common::State::Reset:
             this->reset_state_handler(pins);
             break;
-        case State::Fetch:
+        case EightDo::Common::State::Fetch:
             this->fetch_state_handler(pins);
             break;
-        case State::Execute:
+        case EightDo::Common::State::Execute:
             this->execute_state_handler(pins);
             break;
-        case State::Halt:
+        case EightDo::Common::State::Halt:
             return;
-        case State::Interrupt:
+        case EightDo::Common::State::Interrupt:
             this->interrupt_state_handler(pins);
             break;
     }
@@ -67,51 +67,51 @@ void CPU::CPU::cycle(Pins* pins) {
     this->cycleCount++;
 }
 
-void CPU::CPU::reset_state_handler(Pins* pins) {
+void CPU::CPU::reset_state_handler(EightDo::Common::Pins* pins) {
     switch(this->cycleCount) {
         case 0:
             pins->address.address = 0x0000;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
             break;
         case 1:
             this->temp16 = ((uint16_t)pins->data) << 8;
 
             pins->address.address = 0x0001;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
             break;
         case 2:
             this->temp16 |= pins->data;
             this->pc.value = this->temp16;
 
-            this->state = State::Fetch;
+            this->state = EightDo::Common::State::Fetch;
             this->finish(pins);
             break;
     }
 }
 
-void CPU::CPU::fetch_state_handler(Pins* pins) {
+void CPU::CPU::fetch_state_handler(EightDo::Common::Pins* pins) {
     switch(this->cycleCount) {
         case 0:
             pins->address = this->pc;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
             pins->bus_enable = true;
             break;
         case 1:
             this->opcode = pins->data;
             pins->address.address = ++this->pc.address;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
             break;
         case 2:
             this->metadata.value = pins->data;
             this->pc.address++;
 
             this->finish(pins);
-            this->state = State::Execute;
+            this->state = EightDo::Common::State::Execute;
             break;
     }
 }
 
-void CPU::CPU::execute_state_handler(Pins* pins) {
+void CPU::CPU::execute_state_handler(EightDo::Common::Pins* pins) {
     pins->bus_enable = true;
 
     switch(this->opcode) {
@@ -181,9 +181,9 @@ void CPU::CPU::execute_state_handler(Pins* pins) {
     }
 }
 
-void CPU::CPU::interrupt_state_handler(Pins* pins) {
+void CPU::CPU::interrupt_state_handler(EightDo::Common::Pins* pins) {
     switch (this->int_status) {
-        case InterruptStatus::Normal:
+        case EightDo::Common::InterruptStatus::Normal:
             switch(this->cycleCount) {
                 case 0:
                     pins->iak = 1;
@@ -193,42 +193,42 @@ void CPU::CPU::interrupt_state_handler(Pins* pins) {
                     pins->iak = 0;
                     this->int_number = pins->data;
                     pins->address = this->int_number.value * 2;
-                    pins->rw = ReadWrite::Read;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
                 break;
                 case 2:
                     this->temp16 = pins->data << 8;
                     pins->address.address = ++pins->address.address;
-                    pins->rw = ReadWrite::Read;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
                 break;
                 case 3:
                     this->temp16 |= pins->data;
                     pins->address.address = this->sp.address;
                     pins->data = this->pc.value >> 8;
-                    pins->rw = ReadWrite::Write;
+                    pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
                 case 4:
                     pins->address.address = ++this->sp.address;
                     pins->data = this->pc.value;
-                    pins->rw = ReadWrite::Write;
+                    pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
                 case 5:
                     pins->address.address = ++this->sp.address;
                     pins->data = this->pc.extended;
-                    pins->rw = ReadWrite::Write;
+                    pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
                 case 6:
                     pins->address.address = ++this->sp.address;
                     pins->data = this->flags.value;
-                    pins->rw = ReadWrite::Write;
+                    pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
                 case 7:
                     this->pc.address = this->temp16;
-                    this->int_status = InterruptStatus::None;
+                    this->int_status = EightDo::Common::InterruptStatus::None;
                     this->finish(pins);
                 break;
             }
         break;
-        case InterruptStatus::NonMaskable:
+        case EightDo::Common::InterruptStatus::NonMaskable:
             switch (this->cycleCount) {
             case 0:
                 pins->iak = 1;
@@ -237,37 +237,37 @@ void CPU::CPU::interrupt_state_handler(Pins* pins) {
                 pins->bus_enable = true;
                 pins->iak = 0;
                 pins->address = 0x02;
-                pins->rw = ReadWrite::Read;
+                pins->rw = EightDo::Common::ReadWrite::Read;
                 break;
             case 2:
                 this->temp16 = pins->data << 8;
                 pins->address.address = ++pins->address.address;
-                pins->rw = ReadWrite::Read;
+                pins->rw = EightDo::Common::ReadWrite::Read;
                 break;
             case 3:
                 this->temp16 |= pins->data;
                 pins->address.address = this->sp.address;
                 pins->data = this->pc.value >> 8;
-                pins->rw = ReadWrite::Write;
+                pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
             case 4:
                 pins->address.address = ++this->sp.address;
                 pins->data = this->pc.value;
-                pins->rw = ReadWrite::Write;
+                pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
             case 5:
                 pins->address.address = ++this->sp.address;
                 pins->data = this->pc.extended;
-                pins->rw = ReadWrite::Write;
+                pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
             case 6:
                 pins->address.address = ++this->sp.address;
                 pins->data = this->flags.value;
-                pins->rw = ReadWrite::Write;
+                pins->rw = EightDo::Common::ReadWrite::Write;
                 break;
             case 7:
                 this->pc.address = this->temp16;
-                this->int_status = InterruptStatus::None;
+                this->int_status = EightDo::Common::InterruptStatus::None;
                 this->finish(pins);
                 break;
             }
@@ -307,16 +307,16 @@ uint8_t& CPU::CPU::DecodeRegister(uint8_t reg) {
     }
 }
 
-void CPU::CPU::jump_if_flag(Pins* pins, bool flag) {
+void CPU::CPU::jump_if_flag(EightDo::Common::Pins* pins, bool flag) {
     switch(this->cycleCount) {
         case 0:
             pins->address = this->pc;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
         break;
         case 1:
             this->temp16 = pins->data << 8;
             pins->address.address = ++this->pc.address;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
         break;
         case 2:
             this->temp16 |= pins->data;
@@ -328,22 +328,22 @@ void CPU::CPU::jump_if_flag(Pins* pins, bool flag) {
                 this->pc.address++;
             }
 
-            this->state = State::Fetch;
+            this->state = EightDo::Common::State::Fetch;
             this->finish(pins);
         break;
     }
 }
 
-void CPU::CPU::jump_not_flag(Pins* pins, bool flag) {
+void CPU::CPU::jump_not_flag(EightDo::Common::Pins* pins, bool flag) {
     switch(this->cycleCount) {
         case 0:
             pins->address = this->pc;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
         break;
         case 1:
             this->temp16 = pins->data << 8;
             pins->address.address = ++this->pc.address;
-            pins->rw = ReadWrite::Read;
+            pins->rw = EightDo::Common::ReadWrite::Read;
         break;
         case 2:
             this->temp16 |= pins->data;
@@ -354,7 +354,7 @@ void CPU::CPU::jump_not_flag(Pins* pins, bool flag) {
                 this->pc.address++;
             }
 
-            this->state = State::Fetch;
+            this->state = EightDo::Common::State::Fetch;
             this->finish(pins);
         break;
     }

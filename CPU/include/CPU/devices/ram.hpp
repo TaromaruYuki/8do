@@ -5,12 +5,12 @@
 
 namespace CPU::CommonDevices {
     class RAM : public Device {
-        CPU::CPU::ExtendedAddress start_addr;
-        CPU::CPU::ExtendedAddress end_addr;
+        EightDo::Common::ExtendedAddress start_addr;
+        EightDo::Common::ExtendedAddress end_addr;
         uint8_t* ram;
 
     public:
-        RAM(CPU::CPU::ExtendedAddress start, CPU::CPU::ExtendedAddress end) : start_addr(start), end_addr(end) {
+        RAM(EightDo::Common::ExtendedAddress start, EightDo::Common::ExtendedAddress end) : start_addr(start), end_addr(end) {
             this->ram = new uint8_t[this->size()];
         }
 
@@ -18,19 +18,19 @@ namespace CPU::CommonDevices {
             return (size_t)this->end_addr.address - (size_t)this->start_addr.address;
         }
 
-        size_t relative(CPU::CPU::ExtendedAddress address) {
+        size_t relative(EightDo::Common::ExtendedAddress address) {
             return (size_t)address.address - (size_t)this->start_addr.address;
         }
 
-        CPU::CPU::ExtendedAddress start() {
+        EightDo::Common::ExtendedAddress start() {
             return this->start_addr;
         }
 
-        CPU::CPU::ExtendedAddress end() {
+        EightDo::Common::ExtendedAddress end() {
             return this->end_addr;
         }
 
-        Result read(CPU::CPU::ExtendedAddress address) {
+        Result read(EightDo::Common::ExtendedAddress address) {
             if (address.address >= this->start_addr.address && address.address <= this->end_addr.address) {
                 return { .status = Result::Status::Ok, .value = this->ram[this->relative(address)] };
             }
@@ -38,7 +38,7 @@ namespace CPU::CommonDevices {
             return { .status = Result::Status::NotMyAddress, .value = 0x00 };
         }
 
-        Result write(CPU::CPU::ExtendedAddress address, uint8_t data) {
+        Result write(EightDo::Common::ExtendedAddress address, uint8_t data) {
             if (address.address >= this->start_addr.address && address.address <= this->end_addr.address) {
                 this->ram[this->relative(address)] = data;
                 return { .status = Result::Status::Ok, .value = data };

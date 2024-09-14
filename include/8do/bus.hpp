@@ -17,7 +17,7 @@ namespace EightDo {
             devices.erase(devices.begin() + idx);
         }
 
-        CPU::Device::Result read_write(CPU::CPU::ExtendedAddress address) {
+        CPU::Device::Result read_write(EightDo::Common::ExtendedAddress address) {
             for (CPU::Device* device : devices) {
                 CPU::Device::Result result = device->read(address);
 
@@ -35,7 +35,7 @@ namespace EightDo {
             return { .status = CPU::Device::Result::Status::NoValidDevice, .value = 1 };
         }
 
-        CPU::Device::Result read_write(CPU::CPU::ExtendedAddress address, uint8_t data) {
+        CPU::Device::Result read_write(EightDo::Common::ExtendedAddress address, uint8_t data) {
             for (CPU::Device* device : devices) {
                 CPU::Device::Result result = device->write(address, data);
 
