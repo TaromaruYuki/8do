@@ -3,8 +3,6 @@ project(EightDoCPU)
 add_library(${PROJECT_NAME} STATIC 
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpu.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/cpu_instructions.cpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/CPU/devices/ram.hpp"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include/CPU/devices/rom.hpp"
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/" "${CMAKE_CURRENT_SOURCE_DIR}/../common/include")

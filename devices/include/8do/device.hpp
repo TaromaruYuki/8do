@@ -1,9 +1,9 @@
 #pragma once
 
 #include <inttypes.h>
-#include <CPU/cpu.hpp>
+#include <8do/common.hpp>
 
-namespace CPU {
+namespace EightDo {
     struct Device {
         struct Result {
             enum Status {

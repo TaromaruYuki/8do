@@ -8,18 +8,18 @@ int main() {
     CPU::CommonDevices::ROM* rom = new CPU::CommonDevices::ROM(0x0000, 0x7FFF);
     auto rom_res = rom->load_rom("../../../gen/interrupts.bin");
 
-    if(rom_res.status != CPU::Device::Result::Status::Ok) {
-        if(rom_res.status == CPU::Device::Result::Status::FileNotFound) {
+    if(rom_res.status != EightDo::Device::Result::Status::Ok) {
+        if(rom_res.status == EightDo::Device::Result::Status::FileNotFound) {
             std::cerr << "ERROR: File not found" << std::endl;
         }
-        else if(rom_res.status == CPU::Device::Result::Status::CannotReadFile) {
+        else if(rom_res.status == EightDo::Device::Result::Status::CannotReadFile) {
             std::cerr << "ERROR: Cannot read file" << std::endl;
         }
 
         return 1;
     }
 
-    CPU::CommonDevices::RAM* ram = new CPU::CommonDevices::RAM(0x8000, 0x3FFFF);
+    EightDo::Devices::RAM* ram = new EightDo::Devices::RAM(0x8000, 0x3FFFF);
 
     emulator.add_device(rom);
     emulator.add_device(ram);

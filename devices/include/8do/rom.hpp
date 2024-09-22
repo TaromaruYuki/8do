@@ -1,12 +1,11 @@
 #pragma once
 
-#include <CPU/device.hpp>
-#include <CPU/cpu.hpp>
+#include <8do/device.hpp>
 #include <filesystem>
 #include <fstream>
 
 namespace CPU::CommonDevices {
-    class ROM : public Device {
+    class ROM : public EightDo::Device {
         EightDo::Common::ExtendedAddress start_addr;
         EightDo::Common::ExtendedAddress end_addr;
         uint8_t* rom;

@@ -1,5 +1,6 @@
-#include <CPU/lib.hpp>
+#include <CPU/cpu.hpp>
 #include <8do/bus.hpp>
+#include <8do/devices.hpp>
 #include <Windows.h>
 
 namespace EightDo {
@@ -45,14 +46,14 @@ namespace EightDo {
 
                 if (this->pins.bus_enable) {
                     if (this->pins.rw == EightDo::Common::ReadWrite::Read) {
-                        CPU::Device::Result result = this->read_write(this->pins.address);
+                        EightDo::Device::Result result = this->read_write(this->pins.address);
 
-                        if(result.status == CPU::Device::Result::Status::Ok) {
+                        if(result.status == EightDo::Device::Result::Status::Ok) {
                             this->pins.data = result.value;
                             return;
                         }
 
-                        if (result.status == CPU::Device::Result::Status::WriteOnly) {
+                        if (result.status == EightDo::Device::Result::Status::WriteOnly) {
                             this->pins.data = 0;
                             return;
                         }
@@ -62,16 +63,16 @@ namespace EightDo {
                         exit(result.value);
                     }
                     else {
-                        CPU::Device::Result result = this->read_write(this->pins.address, this->pins.data);
+                        EightDo::Device::Result result = this->read_write(this->pins.address, this->pins.data);
 
-                        if (result.status == CPU::Device::Result::Status::Ok) {
+                        if (result.status == EightDo::Device::Result::Status::Ok) {
                             if (this->pins.address.address == 0xA000)
                                 std::cout << this->pins.data;
 
                             return;
                         }
 
-                        if(result.status == CPU::Device::Result::Status::ReadOnly) {
+                        if(result.status == EightDo::Device::Result::Status::ReadOnly) {
                             return;
                         }
                         

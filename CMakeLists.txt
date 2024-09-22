@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME} "src/main.cpp")
 
 add_subdirectory("CPU")
 
-target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include" "common/include")
+target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include" "common/include" "devices/include")
 target_link_libraries(${PROJECT_NAME} PRIVATE EightDoCPU)
 add_dependencies(${PROJECT_NAME} EightDoCPU)
 

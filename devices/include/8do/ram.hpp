@@ -1,10 +1,9 @@
 #pragma once
 
-#include <CPU/device.hpp>
-#include <CPU/cpu.hpp>
+#include <8do/device.hpp>
 
-namespace CPU::CommonDevices {
-    class RAM : public Device {
+namespace EightDo::Devices {
+    class RAM : public EightDo::Device {
         EightDo::Common::ExtendedAddress start_addr;
         EightDo::Common::ExtendedAddress end_addr;
         uint8_t* ram;
