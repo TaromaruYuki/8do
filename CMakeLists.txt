@@ -10,10 +10,12 @@ project("8do")
 add_executable(${PROJECT_NAME} "src/main.cpp")
 
 add_subdirectory("CPU")
+add_subdirectory("extern/raylib")
+add_subdirectory("extern/raylib-cpp")
 
-target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include" "common/include" "devices/include")
-target_link_libraries(${PROJECT_NAME} PRIVATE EightDoCPU)
-add_dependencies(${PROJECT_NAME} EightDoCPU)
+target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include" "common/include" "devices/include" "extern/raylib/src" "extern/raylib-cpp/include")
+target_link_libraries(${PROJECT_NAME} PRIVATE EightDoCPU raylib raylib_cpp)
+add_dependencies(${PROJECT_NAME} EightDoCPU raylib raylib_cpp)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
 	set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
