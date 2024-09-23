@@ -1,7 +1,10 @@
 #include <CPU/cpu.hpp>
 #include <8do/bus.hpp>
 #include <8do/devices.hpp>
-#include <Windows.h>
+
+#include <raylib-cpp.hpp>
+#include <rlImGui/rlImGui.h>
+#include <imgui.h>
 
 namespace EightDo {
     constexpr float HERTZ = 100000;
@@ -9,6 +12,8 @@ namespace EightDo {
     class Emulator : public Bus {
         CPU::CPU* cpu;
         EightDo::Common::Pins pins;
+        raylib::Window* window;
+        bool open = true;
 
         public:
             union Options {
@@ -24,10 +29,33 @@ namespace EightDo {
                 static Options empty() { Options opts; opts.data = 0; return opts; }
             };
 
-            Emulator() { this->cpu = new CPU::CPU(&this->pins); }
+            Emulator() { 
+                this->cpu = new CPU::CPU(&this->pins);
+                this->window = new raylib::Window(80 * 8, 25 * 14); // 80×25 - 8×14
+            }
+
+            ~Emulator() {
+                delete this->cpu;
+                rlImGuiShutdown();
+                window->Close();
+                delete this->window;
+            }
 
             void start() {
-                while(1) {
+                rlImGuiSetup(true);
+
+                BeginDrawing();
+
+                window->ClearBackground(RAYWHITE);
+                rlImGuiBegin();
+                ImGui::ShowDemoWindow(&open);
+                DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+
+                DrawFPS(190, 300);
+                rlImGuiEnd();
+                EndDrawing();
+
+                while(!this->window->ShouldClose()) {
                     if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == EightDo::Common::State::Halt) {
                         break;
                     }
