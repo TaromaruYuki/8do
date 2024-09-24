@@ -31,7 +31,7 @@ namespace EightDo {
 
             Emulator() { 
                 this->cpu = new CPU::CPU(&this->pins);
-                this->window = new raylib::Window(80 * 8, 25 * 14); // 80×25 - 8×14
+                this->window = new raylib::Window(80 * 8 * 2, 25 * 14 * 2); // 80×25 - 8×14
             }
 
             ~Emulator() {
@@ -44,23 +44,23 @@ namespace EightDo {
             void start() {
                 rlImGuiSetup(true);
 
-                BeginDrawing();
-
-                window->ClearBackground(RAYWHITE);
-                rlImGuiBegin();
-                ImGui::ShowDemoWindow(&open);
-                DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
-
-                DrawFPS(190, 300);
-                rlImGuiEnd();
-                EndDrawing();
-
                 while(!this->window->ShouldClose()) {
                     if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == EightDo::Common::State::Halt) {
                         break;
                     }
 
                     this->loop();
+
+                    BeginDrawing();
+
+                    window->ClearBackground(RAYWHITE);
+                    rlImGuiBegin();
+                    ImGui::ShowDemoWindow(&open);
+                    DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+
+                    DrawFPS(190, 300);
+                    rlImGuiEnd();
+                    EndDrawing();
                 }
             }
 
