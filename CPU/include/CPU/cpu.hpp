@@ -69,6 +69,10 @@ namespace CPU {
         void cycle(EightDo::Common::Pins* pins);
         EightDo::Common::State get_state() const { return this->state; };
 
+        EightDo::Common::ExtendedAddress* get_pc() {
+            return &this->pc;
+        }
+
     private:
         void finish(EightDo::Common::Pins* pins);
 

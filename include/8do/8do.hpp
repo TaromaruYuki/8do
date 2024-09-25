@@ -1,6 +1,7 @@
 #include <CPU/cpu.hpp>
 #include <8do/bus.hpp>
 #include <8do/devices.hpp>
+#include <8do/debug_menu.hpp>
 
 #include <raylib-cpp.hpp>
 #include <rlImGui/rlImGui.h>
@@ -8,12 +9,13 @@
 
 namespace EightDo {
     constexpr float HERTZ = 100000;
+    constexpr int SCALE = 2;
 
     class Emulator : public Bus {
         CPU::CPU* cpu;
         EightDo::Common::Pins pins;
         raylib::Window* window;
-        bool open = true;
+        UI::DebugUI* debug_ui;
 
         public:
             union Options {
@@ -31,7 +33,8 @@ namespace EightDo {
 
             Emulator() { 
                 this->cpu = new CPU::CPU(&this->pins);
-                this->window = new raylib::Window(80 * 8 * 2, 25 * 14 * 2); // 80×25 - 8×14
+                this->window = new raylib::Window(40 * 8 * SCALE, 30 * 8 * SCALE); // 40x30 - 8×8
+                this->debug_ui = new UI::DebugUI(this->cpu->get_pc());
             }
 
             ~Emulator() {
@@ -51,16 +54,12 @@ namespace EightDo {
 
                     this->loop();
 
-                    BeginDrawing();
+                    this->begin_drawing();
 
                     window->ClearBackground(RAYWHITE);
-                    rlImGuiBegin();
-                    ImGui::ShowDemoWindow(&open);
-                    DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+                    this->debug_ui->draw(this->window->GetFPS());
 
-                    DrawFPS(190, 300);
-                    rlImGuiEnd();
-                    EndDrawing();
+                    this->end_drawing();
                 }
             }
 
@@ -68,6 +67,16 @@ namespace EightDo {
 
         private:
             Options opts = {};
+
+            void begin_drawing() {
+                this->window->BeginDrawing();
+                rlImGuiBegin();
+            }
+
+            void end_drawing() {
+                rlImGuiEnd();
+                this->window->EndDrawing();
+            }
 
             void loop() {
                 this->cpu->cycle(&this->pins);
