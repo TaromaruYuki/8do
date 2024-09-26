@@ -26,4 +26,9 @@ namespace EightDo {
         virtual EightDo::Common::ExtendedAddress start() { EightDo::Common::ExtendedAddress address = 0; return address; }
         virtual EightDo::Common::ExtendedAddress end() { EightDo::Common::ExtendedAddress address = 0; return address; }
     };
+
+    struct VideoDevice : public Device {
+        virtual uint8_t* vram_array() { return nullptr; }
+        virtual size_t vram_size() { return 0; }
+    };
 }

@@ -19,10 +19,12 @@ int main() {
         return 1;
     }
 
-    EightDo::Devices::RAM* ram = new EightDo::Devices::RAM(0x8000, 0x3FFFF);
+    EightDo::Devices::RAM* ram = new EightDo::Devices::RAM(0x8000, 0xFFFF);
+    EightDo::Devices::Video* video = new EightDo::Devices::Video();
 
     emulator.add_device(rom);
     emulator.add_device(ram);
+    emulator.add_video_device(video);
 
     emulator.start();
 
