@@ -6,7 +6,7 @@
 int main() {
     EightDo::Emulator emulator;
     CPU::CommonDevices::ROM* rom = new CPU::CommonDevices::ROM(0x0000, 0x7FFF);
-    auto rom_res = rom->load_rom("../../../gen/interrupts.bin");
+    auto rom_res = rom->load_rom("../../../gen/hello_world.bin");
 
     if(rom_res.status != EightDo::Device::Result::Status::Ok) {
         if(rom_res.status == EightDo::Device::Result::Status::FileNotFound) {

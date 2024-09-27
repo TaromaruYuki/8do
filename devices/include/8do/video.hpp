@@ -9,7 +9,7 @@ namespace EightDo::Devices {
             ClassicText = 0
         };
 
-        Mode video_mode;
+        Mode video_mode = Mode::ClassicText;
         uint8_t* vram;
         size_t vram_size_t = 0xFFEF;
 
@@ -20,7 +20,7 @@ namespace EightDo::Devices {
         Video() {
             this->vram = new uint8_t[this->vram_size_t];
 
-            uint8_t clear_buf[] = { 'A', 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00 };
+            uint8_t clear_buf[] = { 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00};
             uint8_t counter = 0;
             for(size_t i = 0; i < this->vram_size_t; i++) {
                 this->vram[i] = clear_buf[counter++];
