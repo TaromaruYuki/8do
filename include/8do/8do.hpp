@@ -281,8 +281,7 @@ namespace EightDo {
             union Options {
                 struct {
                     uint8_t break_on_hlt : 1;
-                    uint8_t verbose_debug : 1;
-                    uint8_t unused : 6;
+                    uint8_t unused : 7;
                 };
 
                 uint8_t data;
@@ -293,8 +292,10 @@ namespace EightDo {
 
             Emulator() { 
                 this->cpu = new CPU::CPU(&this->pins);
-                this->window = new raylib::Window(40 * 8 * SCALE, 30 * 8 * SCALE); // 40x30 - 8×8
-                this->debug_ui = new UI::DebugUI(this->cpu->get_pc());
+                if(this->video_device) {
+                    this->window = new raylib::Window(40 * 8 * SCALE, 30 * 8 * SCALE); // 40x30 - 8x8
+                    this->debug_ui = new UI::DebugUI(this->cpu->get_pc());
+                }
             }
 
             ~Emulator() {
@@ -314,41 +315,43 @@ namespace EightDo {
 
                     this->loop();
 
-                    this->begin_drawing();
+                    if(this->video_device) {
+                        this->begin_drawing();
 
-                    window->ClearBackground(RAYWHITE);
+                        window->ClearBackground(RAYWHITE);
 
-                    for (size_t i = 0; i < 40 * 30; i++) {
-                        size_t x = i % 40;
-                        size_t y = i / 40;
-                        uint8_t* region = &this->video_device->vram_array()[(y * 40 + x) * 7];
+                        for (size_t i = 0; i < 40 * 30; i++) {
+                            size_t x = i % 40;
+                            size_t y = i / 40;
+                            uint8_t* region = &this->video_device->vram_array()[(y * 40 + x) * 7];
 
-                        uint8_t c  = *(region);
-                        uint8_t fr = *(region + 1);
-                        uint8_t fg = *(region + 2);
-                        uint8_t fb = *(region + 3);
-                        uint8_t br = *(region + 4);
-                        uint8_t bg = *(region + 5);
-                        uint8_t bb = *(region + 6);
+                            uint8_t c  = *(region);
+                            uint8_t fr = *(region + 1);
+                            uint8_t fg = *(region + 2);
+                            uint8_t fb = *(region + 3);
+                            uint8_t br = *(region + 4);
+                            uint8_t bg = *(region + 5);
+                            uint8_t bb = *(region + 6);
 
-                        int32_t mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-                        uint8_t* gylph = seabios8x8 + (int)c * 8;
-                        std::string c_str(1, c);
+                            int32_t mask[8] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+                            uint8_t* gylph = seabios8x8 + (int)c * 8;
+                            std::string c_str(1, c);
 
-                        raylib::Color::Color(br, bg, bb).DrawRectangle(x * 8, y * 8, 8, 8);
-                        raylib::Color::Color(fr, fg, fb).DrawText(c_str, x * 8, y * 8, 8);
+                            raylib::Color(br, bg, bb).DrawRectangle(x * 8, y * 8, 8, 8);
+                            raylib::Color(fr, fg, fb).DrawText(c_str, x * 8, y * 8, 8);
 
-                        //for (size_t j = 0; j < 64; j++) {
-                        //    size_t cx = j % 8;
-                        //    size_t cy = j / 8;
+                            //for (size_t j = 0; j < 64; j++) {
+                            //    size_t cx = j % 8;
+                            //    size_t cy = j / 8;
 
-                        //    if (gylph[cy] & mask[cx])
-                        //        //raylib::Color::Color(fr, fg, fb).DrawRectangle((x * 8 + cx) * SCALE, (y * 8 + cy) * SCALE, SCALE, SCALE);
-                        //        //raylib::Color::Color(fr, fg, fb).DrawPixel(x * 8 + cx, y * 8 + cy);
-                        //    else
-                        //        //raylib::Color::Color(br, bg, bb).DrawRectangle((x * 8 + cx) * SCALE, (y * 8 + cy) * SCALE, SCALE, SCALE);
-                        //        //raylib::Color::Color(br, bg, bb).DrawPixel(x * 8 + cx, y * 8 + cy);
-                        //}
+                            //    if (gylph[cy] & mask[cx])
+                            //        //raylib::Color::Color(fr, fg, fb).DrawRectangle((x * 8 + cx) * SCALE, (y * 8 + cy) * SCALE, SCALE, SCALE);
+                            //        //raylib::Color::Color(fr, fg, fb).DrawPixel(x * 8 + cx, y * 8 + cy);
+                            //    else
+                            //        //raylib::Color::Color(br, bg, bb).DrawRectangle((x * 8 + cx) * SCALE, (y * 8 + cy) * SCALE, SCALE, SCALE);
+                            //        //raylib::Color::Color(br, bg, bb).DrawPixel(x * 8 + cx, y * 8 + cy);
+                            //}
+                        }
                     }
 
                     this->debug_ui->draw(this->window->GetFPS());
