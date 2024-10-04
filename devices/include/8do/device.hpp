@@ -4,6 +4,10 @@
 #include <8do/common.hpp>
 
 namespace EightDo {
+    namespace Consts {
+        constexpr uint8_t F_GRAPHICS_AVAILABLE = 0;
+    };
+    
     struct Device {
         struct Result {
             enum Status {
@@ -31,7 +35,35 @@ namespace EightDo {
     };
 
     struct VideoDevice : public Device {
+        union Flags {
+            struct {
+                uint8_t graphics_available : 1;
+            };
+
+            uint8_t data;
+
+            Flags(uint8_t data) : data(data) { }
+        };
+
+        union Resolution {
+            struct {
+                uint32_t width : 16;
+                uint32_t height: 16;
+            };
+
+            uint8_t width_hb : 8;
+            uint8_t width_lb : 8;
+            uint8_t height_hb : 8;
+            uint8_t height_lb : 8;
+
+            Resolution(uint16_t width, uint16_t height) {
+                this->width = width;
+                this->height = height;
+            }
+        };
+
         virtual uint8_t* vram_array() { return nullptr; }
         virtual size_t vram_size() { return 0; }
+        virtual Result update() { return { .status = Result::Status::Ok, .value = 0x00 }; }
     };
 }

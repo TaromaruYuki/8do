@@ -60,7 +60,7 @@ namespace CPU {
         uint8_t temp8 = 0;	                                  // Temporary 8-bit value
         uint8_t opcode = 0;	                                  // Current Opcode
         EightDo::Common::InterruptStatus int_status = EightDo::Common::InterruptStatus::None;
-        EightDo::Common::InterruptNumber int_number = 0;
+        EightDo::Common::uint4_t int_number = 0;
 
     public:
         CPU(EightDo::Common::Pins* pins) { this->reset(pins); };

@@ -11,9 +11,14 @@ add_executable(${PROJECT_NAME} "src/main.cpp")
 
 add_subdirectory("CPU")
 add_subdirectory("extern")
+find_package(Curses REQUIRED)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "include/" "CPU/include" "common/include" "devices/include" "extern/raylib/src" "extern/raylib-cpp/include" "extern/rlImGui/include" "extern/imgui")
-target_link_libraries(${PROJECT_NAME} PRIVATE EightDoCPU EightDoExternal)
+target_include_directories(${PROJECT_NAME} PUBLIC 
+	"include/" "CPU/include" "common/include" "devices/include" "extern/raylib/src"
+	"extern/raylib-cpp/include" "extern/rlImGui/include" "extern/imgui"
+	${CURSES_INCLUDE_DIRS}
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE EightDoCPU EightDoExternal ${CURSES_LIBRARIES})
 add_dependencies(${PROJECT_NAME} EightDoCPU EightDoExternal)
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)

@@ -21,10 +21,12 @@ int main() {
 
     EightDo::Devices::RAM* ram = new EightDo::Devices::RAM(0x8000, 0xFFFF);
     // EightDo::Devices::Video* video = new EightDo::Devices::Video();
+    EightDo::Devices::STDOut* video = new EightDo::Devices::STDOut();
 
     emulator.add_device(rom);
     emulator.add_device(ram);
     // emulator.add_video_device(video);
+    emulator.add_device(video);
 
     emulator.start();
 

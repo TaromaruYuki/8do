@@ -22,11 +22,11 @@ namespace EightDo::Common {
         NonMaskable
     };
 
-    struct InterruptNumber {
+    struct uint4_t {
         uint8_t value : 4;
         uint8_t _ : 4;                                     // Unused
 
-        InterruptNumber(int number) {
+        uint4_t(int number) {
             this->value = number & 0xF;
         }
     };
