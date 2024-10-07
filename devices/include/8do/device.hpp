@@ -5,7 +5,12 @@
 
 namespace EightDo {
     namespace Consts {
-        constexpr uint8_t F_GRAPHICS_AVAILABLE = 0;
+        constexpr uint8_t F_GRAPHICS_AVAILABLE      = 0b00;
+        constexpr uint8_t F_COLORS_AVAILABLE        = 0b11;
+        constexpr uint8_t F_COLORS_AVAILABLE_1_BIT  = 0b01;
+        constexpr uint8_t F_COLORS_AVAILABLE_4_BIT  = 0b01;
+        constexpr uint8_t F_COLORS_AVAILABLE_8_BIT  = 0b01;
+        constexpr uint8_t F_COLORS_AVAILABLE_24_BIT = 0b01;
     };
     
     struct Device {
@@ -38,6 +43,8 @@ namespace EightDo {
         union Flags {
             struct {
                 uint8_t graphics_available : 1;
+                uint8_t colors_available   : 2; // 0 - 1 bit | 1 - 4 bit | 2 -  8 bit | 3 - 24 bit
+                uint8_t unused: 5;
             };
 
             uint8_t data;
