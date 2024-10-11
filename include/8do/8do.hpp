@@ -300,15 +300,22 @@ namespace EightDo {
 
             ~Emulator() {
                 delete this->cpu;
-                rlImGuiShutdown();
-                window->Close();
-                delete this->window;
+                if(this->video_device) {
+                    rlImGuiShutdown();
+                    window->Close();
+                    delete this->window;
+                }
             }
 
             void start() {
-                rlImGuiSetup(true);
+                if(this->video_device)
+                    rlImGuiSetup(true);
 
-                while(!this->window->ShouldClose()) {
+                while(true) {
+                    if(this->video_device)
+                        if(this->window->ShouldClose())
+                            break;
+
                     if (this->opts.break_on_hlt == 1 && this->cpu->get_state() == EightDo::Common::State::Halt) {
                         break;
                     }
@@ -352,11 +359,11 @@ namespace EightDo {
                             //        //raylib::Color::Color(br, bg, bb).DrawPixel(x * 8 + cx, y * 8 + cy);
                             //}
                         }
+
+                        this->debug_ui->draw(this->window->GetFPS());
+
+                        this->end_drawing();
                     }
-
-                    this->debug_ui->draw(this->window->GetFPS());
-
-                    this->end_drawing();
                 }
             }
 

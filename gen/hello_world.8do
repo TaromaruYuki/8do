@@ -4,19 +4,44 @@ jump_table: .WORD $0200
 
 .ORG $0100
 
-str: .ASCIIZ "Hello, world!\n"
+str: .ASCIIZ "Hello, world!"
+
+bar: .ASCIIZ "|"
+
+.ORG $0194
+
+str_ptr: .BYTE 0x00 .WORD str
+bar_ptr: .BYTE 0x00 .WORD bar
 
 .ORG $0200
 
 main:
+	LDR RA, 0x8
+	JSR move_right
 	JSR print
+	LDR RC, &str_ptr
+	LDR RA, 0x13
+	JSR move_right
+
 	HLT
+
+move_right:
+	LDR RB, 0x03
+move_right_loop:
+	STR RB, $10010
+	SUB RA, 0x1
+	BIZ move_right_end
+	JMP move_right_loop
+move_right_end:
+	RET
 
 print:
 	LDR RO, 0x00
+	LDR RB, 0x05
 print_loop:
 	LDO RA, str
-	STR RA, $A000
+	STR RB, $10010
+	STR RA, $10011
 	CMP RA, 0x00
 	BIZ print_end
 	INC RO

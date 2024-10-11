@@ -51,11 +51,11 @@ namespace CPU {
         uint8_t rd = 0;                                       // D      Register
         uint8_t ro = 0;                                       // Offset Register
                                          
-        EightDo::Common::ExtendedAddress pc;                                   // Program Counter
+        EightDo::Common::ExtendedAddress pc;                  // Program Counter
         EightDo::Common::State state;
         int8_t cycleCount = 0;
 
-        EightDo::Common::ExtendedAddress tempaddr = 0;                         // Temporary 18-bit value
+        EightDo::Common::ExtendedAddress tempaddr = 0;        // Temporary 18-bit value
         uint16_t temp16 = 0;                                  // Temporary 16-bit value
         uint8_t temp8 = 0;	                                  // Temporary 8-bit value
         uint8_t opcode = 0;	                                  // Current Opcode

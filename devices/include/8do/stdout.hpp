@@ -69,7 +69,7 @@ namespace EightDo::Devices {
                         return { .status = Result::Status::WriteOnly, .value = 0x00 };
                         break;
                     case 0x11: // Data
-                        return { .status = Result::Status::Ok, .value = data };
+                        return { .status = Result::Status::Ok, .value = this->data };
                     default:
                         return { .status = Result::Status::Ok, .value = 0 };
                 }
@@ -81,60 +81,78 @@ namespace EightDo::Devices {
         Result write(EightDo::Common::ExtendedAddress address, uint8_t data) {
             if (this->in_range(address)) {
                 switch (this->relative(address)) {
-                case 0x0:
-                case 0x1:
-                case 0x2:
-                case 0x3:
-                case 0x4:
-                case 0x5:
-                case 0x6:
-                case 0x7:
-                case 0x8:
-                case 0x9:
-                case 0xA:
-                case 0xB:
-                case 0xC:
-                case 0xD:
-                case 0xE:
-                case 0xF:
-                    return { .status = Result::Status::Ok, .value = 0x00 };
-                    break;
-                case 0x10:
-                    switch (data) {
-                        case 0x0: // Move Cursor Up
-                            this->console.move_cursor_up();
-                            break;
-                        case 0x1: // Move Cursor Down
-                            this->console.move_cursor_down();
-                            break;
-                        case 0x2: // Move Cursor Left
-                            this->console.move_cursor_left();
-                            break;
-                        case 0x3: // Move Cursor Right
-                            this->console.move_cursor_right();
-                            break;
-                        case 0x4: // Move Cursor To
-                            this->current_command = Command::MoveCursor;
-                            this->command_data = std::nullopt;
-                            break;
-                    }
-                    break;
-                case 0x11:
-                    switch (this->current_command) {
-                        case Command::MoveCursor:
-                            if (this->command_data) {
-                                this->console.move_cursor(this->command_data.value(), data);
-                                this->current_command = Command::None;
+                    case 0x0:
+                    case 0x1:
+                    case 0x2:
+                    case 0x3:
+                    case 0x4:
+                    case 0x5:
+                    case 0x6:
+                    case 0x7:
+                    case 0x8:
+                    case 0x9:
+                    case 0xA:
+                    case 0xB:
+                    case 0xC:
+                    case 0xD:
+                    case 0xE:
+                    case 0xF:
+                        return { .status = Result::Status::Ok, .value = 0x00 };
+                        break;
+                    case 0x10:
+                        switch (data) {
+                            case 0x0: // Move Cursor Up
+                                this->console.move_cursor_up();
+                                this->data = 0x00;
+                                break;
+                            case 0x1: // Move Cursor Down
+                                this->console.move_cursor_down();
+                                this->data = 0x00;
+                                break;
+                            case 0x2: // Move Cursor Left
+                                this->console.move_cursor_left();
+                                this->data = 0x00;
+                                break;
+                            case 0x3: // Move Cursor Right
+                                this->console.move_cursor_right();
+                                this->data = 0x00;
+                                break;
+                            case 0x4: // Move Cursor To
+                                this->current_command = Command::MoveCursor;
                                 this->command_data = std::nullopt;
-                            }
-                            else {
-                                this->command_data = data;
-                            }
-                            break;
-                        case Command::PrintChar:
-                            this->console.print_char((char)data);
-                            break;
-                    }
+                                this->data = 0x02;
+                                break;
+                            case 0x5: // Print Character
+                                this->current_command = Command::PrintChar;
+                                this->data = 0x01;
+                                break;
+                            default:
+                                this->data = 0xFF;
+                                break;
+                        }
+                        return { .status = Result::Status::Ok, .value = this->data };
+                        break;
+                    case 0x11:
+                        switch (this->current_command) {
+                            case Command::MoveCursor:
+                                if (this->command_data) {
+                                    this->console.move_cursor(this->command_data.value(), data);
+                                    this->current_command = Command::None;
+                                    this->command_data = std::nullopt;
+                                }
+                                else {
+                                    this->command_data = data;
+                                }
+                                break;
+                            case Command::PrintChar:
+                                this->console.print_char((char)data);
+                                break;
+                        }
+                        return { .status = Result::Status::Ok, .value = 0x00 };
+                    break;
+                    default:
+                        return { .status = Result::Status::InvalidAddress, .value = 0x00 };
+                        break;
                 }
             }
             return { .status = Result::Status::NotMyAddress, .value = 0x00 };

@@ -269,10 +269,12 @@ def assemble(file):
                 instruction = False
                 continue
             elif word.upper()[0] == ">":
-                key += "P" # Pointer. Can be a memory address like $, or a label.
+                key += "P" # Pointer. Can be a memory address like $, a label, or a register.
 
                 if len(key) == 2:
-                    if not word.upper()[1] == "$": # Label
+                    if word.replace(">", "") in DATA["registers"]:
+                        pass
+                    elif not word.upper()[1] == "$": # Label
                         if (word.upper()[1:] in nametable): 
                             result[addr] = DATA["instructions"][name]["opcode"][key]
                         
@@ -417,6 +419,10 @@ def assemble(file):
                 key = ""
                 instruction = False
                 continue
+            elif word.upper()[0] == "&":
+                key += "D"
+
+                
             else:
                 key += "A"
                 
@@ -530,4 +536,5 @@ def assemble(file):
 
 if __name__ == "__main__":
     import sys
-    assemble(sys.argv[1])
+    # assemble(sys.argv[1])
+    assemble("gen/hello_world.8do")

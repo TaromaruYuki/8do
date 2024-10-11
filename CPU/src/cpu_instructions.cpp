@@ -790,6 +790,46 @@ void CPU::CPU::LDO(EightDo::Common::Pins* pins, AddressingModes addressing_mode)
                 break;
            }
         break;
+        case AddressingModes::Pointer:
+            switch (this->cycleCount) {
+                case 0:
+                    pins->address = this->pc;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
+                break;
+                case 1:
+                    this->tempaddr.value = pins->data << 8;
+                    pins->address.address = ++this->pc.address;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
+                break;
+                case 2:
+                    this->tempaddr.value |= pins->data;
+                    this->tempaddr.extended = this->metadata.ext_addr;
+                    pins->address = this->tempaddr;
+                break;
+                case 3:
+                    this->temp8 = pins->data & 0x3;
+                    pins->address.address = ++this->tempaddr.address;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
+                break;
+                case 4:
+                    this->temp16 = pins->data << 8;
+                    pins->address.address = ++this->tempaddr.address;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
+                break;
+                case 5:
+                    this->temp16 |= pins->data;
+                    pins->address.address = this->temp16;
+                    pins->address.extended = this->temp8;
+                    pins->address.address += this->ro;
+                    pins->rw = EightDo::Common::ReadWrite::Read;
+                break;
+                case 6:
+                    this->DecodeRegister(this->metadata.reg0) = pins->data;
+                    this->pc.address++;
+                    this->finish(pins);
+                break;
+            }
+        break;
     }
 }
 

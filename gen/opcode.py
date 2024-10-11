@@ -6,6 +6,7 @@
 # Example:
 # LDR - More than one. (LDRI, LDRA, LDRR)
 # CLC - Only one. (CLC)
+# DAC & ADC - (Same, add a space at end: 'ADC ')
 
 while True:
     result = 0
