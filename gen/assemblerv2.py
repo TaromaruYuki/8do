@@ -59,6 +59,7 @@ class TokenType(Enum):
     POINTER = 8
     REFERENCE = 9
     OFFSET = 10
+    STRING = 11
 
 @dataclass
 class Token:
@@ -74,7 +75,7 @@ class Lexer:
 
     def __advance(self):
         self.position += 1
-        self.current_char = self.text[self.position] if self.position >= len(self.text) else None
+        self.current_char = self.text[self.position] if self.position <= len(self.text) else None
 
     def tokenize(self):
         tokens = []
@@ -88,6 +89,32 @@ class Lexer:
                 self.__advance()
                 
                 tokens.append(self.__make_number())
+            elif self.current_char == '$':
+                self.__advance()
+                tokens.append(self.__make_number())
+            elif self.current_char == '.':
+                self.__advance()
+                token = self.__make_identifier_or_keyword()
+                if token.type_ != TokenType.KEYWORD:
+                    return None, f"Expected directive, not '{token.value}'"
+                token.type_ = TokenType.DIRECTIVE
+
+                tokens.append(token)
+            elif self.current_char == ':':
+                if len(tokens) == 0:
+                    return None, "No label name given, only found ':'."
+
+                name: Token = tokens[-1]
+                
+                if name.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                name.type_ = TokenType.LABEL
+
+                tokens[-1] = name
+            elif self.current_char == '"':
+                self.__advance()
+                tokens.append(self.__make_string())
             else:
                 self.__advance()
 
@@ -101,12 +128,41 @@ class Lexer:
             self.__advance()
 
         return Token(TokenType.INT, num)
+
+    def __make_identifier_or_keyword(self) -> Token:
+        word = ""
+
+        while self.current_char is not None and self.current_char in ascii_letters + "_":
+            word += self.current_char
+            self.__advance()
+
+        if word in DATA['keywords']:
+            return Token(TokenType.KEYWORD, word)
+        else:
+            return Token(TokenType.IDENTIFIER, word)
+        
+    def __make_string(self) -> Token:
+        string = ""
+        escaped = True
+
+        while self.current_char is not None and not escaped:
+            if escaped:
+                string += self.current_char
+                escaped = False
+                continue
+
+            if self.current_char == '"':
+                break
+
+            string += self.current_char
+
+        return Token(TokenType.STRING)
     
 if __name__ == "__main__":
-    print(sys.argv)
-    sys.argv.pop(0)
+    # print(sys.argv)
+    # sys.argv.pop(0)
 
-    with open(sys.argv[0], "r") as f:
+    with open("gen/hello_world.8do", "r") as f: # sys.argv[0]
         text = f.read()
 
     lexer = Lexer(text)
