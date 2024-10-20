@@ -45,28 +45,31 @@ DATA = {
 import sys
 from enum import Enum
 from dataclasses import dataclass
-from string import hexdigits, ascii_letters
+from string import hexdigits, ascii_letters, whitespace
 
 class TokenType(Enum):
-    INT = 0
-    IDENTIFIER = 1
-    KEYWORD = 2
-    REGISTER = 3
-    LABEL = 4
-    DIRECTIVE = 5
-    INSTRUCTION = 6
-    ADDRESS = 7
-    POINTER = 8
-    REFERENCE = 9
-    OFFSET = 10
-    STRING = 11
+    INT = 0 # !
+    IDENTIFIER = 1 # !
+    KEYWORD = 2 # !
+    REGISTER = 3 # !
+    LABEL = 4 # !
+    DIRECTIVE = 5 # !
+    INSTRUCTION = 6 # !
+    ADDRESS = 7 # !
+    POINTER = 8 # !
+    REFERENCE = 9 # !
+    OFFSET = 10 # !
+    STRING = 11 # !
 
 @dataclass
 class Token:
     type_: TokenType
     value: str
 
-class Lexer:
+    def __repr__(self):
+        return f"{self.type_.name}:{self.value}"
+
+class LexerParser:
     def __init__(self, text: str):
         self.text = text
         self.current_char = None
@@ -75,7 +78,7 @@ class Lexer:
 
     def __advance(self):
         self.position += 1
-        self.current_char = self.text[self.position] if self.position <= len(self.text) else None
+        self.current_char = self.text[self.position] if self.position < len(self.text) else None
 
     def tokenize(self):
         tokens = []
@@ -91,23 +94,26 @@ class Lexer:
                 tokens.append(self.__make_number())
             elif self.current_char == '$':
                 self.__advance()
-                tokens.append(self.__make_number())
+                token = self.__make_number()
+                token.type_ = TokenType.ADDRESS
+                tokens.append(token)
             elif self.current_char == '.':
                 self.__advance()
-                token = self.__make_identifier_or_keyword()
-                if token.type_ != TokenType.KEYWORD:
+                token = self.__make_identifier_or_keyword_or_register_or_instruction()
+                if token.type_ != TokenType.KEYWORD: 
                     return None, f"Expected directive, not '{token.value}'"
                 token.type_ = TokenType.DIRECTIVE
 
                 tokens.append(token)
             elif self.current_char == ':':
+                self.__advance()
                 if len(tokens) == 0:
                     return None, "No label name given, only found ':'."
 
                 name: Token = tokens[-1]
                 
                 if name.type_ != TokenType.IDENTIFIER:
-                    return None, f"Expected Identifier, found '{name.value}'"
+                    return None, f"Expected Identifier, found '{name.value}'!"
 
                 name.type_ = TokenType.LABEL
 
@@ -115,6 +121,40 @@ class Lexer:
             elif self.current_char == '"':
                 self.__advance()
                 tokens.append(self.__make_string())
+            elif self.current_char == '&':
+                self.__advance()
+                ref = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if ref.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                ref.type_ = TokenType.REFERENCE
+
+                tokens.append(ref)
+            elif self.current_char == '*':
+                self.__advance()
+                pointer = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if pointer.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                pointer.type_ = TokenType.POINTER
+
+                tokens.append(pointer)
+            elif self.current_char == '>':
+                self.__advance()
+                pointer = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if pointer.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                pointer.type_ = TokenType.OFFSET
+
+                tokens.append(pointer)
+            elif self.current_char in whitespace:
+                self.__advance()
+            elif self.current_char in ascii_letters + "_":
+                tokens.append(self.__make_identifier_or_keyword_or_register_or_instruction())
             else:
                 self.__advance()
 
@@ -129,7 +169,7 @@ class Lexer:
 
         return Token(TokenType.INT, num)
 
-    def __make_identifier_or_keyword(self) -> Token:
+    def __make_identifier_or_keyword_or_register_or_instruction(self) -> Token:
         word = ""
 
         while self.current_char is not None and self.current_char in ascii_letters + "_":
@@ -138,25 +178,31 @@ class Lexer:
 
         if word in DATA['keywords']:
             return Token(TokenType.KEYWORD, word)
+        elif word in DATA['registers']:
+            return Token(TokenType.REGISTER, word)
+        elif word in DATA['instructions']:
+            return Token(TokenType.INSTRUCTION, word)
         else:
             return Token(TokenType.IDENTIFIER, word)
         
     def __make_string(self) -> Token:
         string = ""
-        escaped = True
+        escaped = False
 
-        while self.current_char is not None and not escaped:
+        while self.current_char is not None:
             if escaped:
                 string += self.current_char
                 escaped = False
                 continue
 
             if self.current_char == '"':
+                self.__advance()
                 break
 
             string += self.current_char
+            self.__advance()
 
-        return Token(TokenType.STRING)
+        return Token(TokenType.STRING, string)
     
 if __name__ == "__main__":
     # print(sys.argv)
@@ -165,5 +211,12 @@ if __name__ == "__main__":
     with open("gen/hello_world.8do", "r") as f: # sys.argv[0]
         text = f.read()
 
-    lexer = Lexer(text)
-    print(lexer.tokenize())
+    lp = LexerParser(text)
+    res, error = lp.tokenize()
+
+    if error:
+        print(error)
+        exit(1)
+
+    for item in res:
+        print(item)
