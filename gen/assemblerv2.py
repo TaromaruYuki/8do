@@ -203,6 +203,35 @@ class LexerParser:
             self.__advance()
 
         return Token(TokenType.STRING, string)
+
+class Assembler:
+    def __init__(self, tokens: list[Token]):
+        self.tokens = tokens
+        self.position = -1
+        self.token = None
+        self.__advance()
+
+        self.address = 0
+        self.data = [0x00 for _ in range(0x7FFF + 1)]
+
+    def __advance(self):
+        self.position += 1
+        self.token = self.tokens[self.position] if self.position < len(self.tokens) else None
+
+    def assemble(self):
+        while self.token is not None:
+            match self.token.type_:
+                case TokenType.DIRECTIVE:
+                    if self.token.value.lower() == "org":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.ADDRESS:
+                            raise TypeError(f"Expecting Address, not '{self.token.value}'")
+                        
+                        self.address = int(self.token.value)
+                        self.__advance()
+                case _:
+                    self.__advance()
     
 if __name__ == "__main__":
     # print(sys.argv)
@@ -220,3 +249,6 @@ if __name__ == "__main__":
 
     for item in res:
         print(item)
+
+    assembler = Assembler(res)
+    assembler.assemble()
