@@ -412,7 +412,7 @@ Store a register value into memory.
 
 ## Interrupts
 
-Interrupts work closer to the 8086 than the 6502. There is a interrupt acknoledge pin just like the 8086.
+Interrupts work closer to the 8086 than the 6502. There is a interrupt acknowledge pin just like the 8086.
 This pin is a output pin, so it should not be changed by the emulator but the CPU itself.
 
 To request a interrupt, pull the `IRQ` pin low.

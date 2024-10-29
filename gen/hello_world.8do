@@ -19,7 +19,6 @@ main:
 	LDR RA, 0x8
 	JSR move_right
 	JSR print
-	LDR RC, &str_ptr
 	LDR RA, 0x13
 	JSR move_right
 

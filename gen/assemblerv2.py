@@ -39,6 +39,7 @@ DATA = {
         "RTI": {"size": 0, "opcode": 0x0F}
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
+    "reg_lookup": {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4},
     "keywords": ["ORG", "WORD", "BYTE", "ASCII", "ASCIIZ"]
 }
 
@@ -213,6 +214,7 @@ class Assembler:
 
         self.address = 0
         self.data = [0x00 for _ in range(0x7FFF + 1)]
+        self.labels = {}
 
     def __advance(self):
         self.position += 1
@@ -222,14 +224,133 @@ class Assembler:
         while self.token is not None:
             match self.token.type_:
                 case TokenType.DIRECTIVE:
-                    if self.token.value.lower() == "org":
+                    if self.token.value.upper() == "ORG":
                         self.__advance()
 
                         if self.token.type_ != TokenType.ADDRESS:
-                            raise TypeError(f"Expecting Address, not '{self.token.value}'")
+                            raise TypeError(f"Expecting Address, not '{self.token.type_}'")
                         
                         self.address = int(self.token.value)
                         self.__advance()
+                    elif self.token.value.upper() == "BYTE":
+                        self.__advance()
+                        
+                        if self.token.type_ != TokenType.INT:
+                            raise TypeError(f"Expecting Int, not '{self.token.type_}'")
+                        
+                        self.data[self.address] = int(self.token.value, 16)
+                        self.address += 1
+                        self.__advance()
+                    elif self.token.value.upper() == "WORD":
+                        self.__advance()
+                        
+                        match self.token.type_:
+                            case TokenType.ADDRESS:
+                                value = int(self.token.value, 16)
+                        
+                                self.data[self.address] = (value & 0xFF00) >> 8
+                                self.data[self.address + 1] = value & 0xFF
+                                self.address += 2
+                                self.__advance()
+                            case TokenType.IDENTIFIER:
+                                self.data[self.address] = self.token
+                                self.data[self.address + 1] = None
+                                self.address += 2
+                                self.__advance()
+                            case _:
+                                raise TypeError(f"Expecting Address or Identifier, not '{self.token.type_}'")
+                    elif self.token.value.upper() == "ASCII":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.STRING:
+                            raise TypeError(f"Expecting String, not '{self.token.type_}'")
+                        
+                        for char in self.token.value:
+                            self.data[self.address] = ord(char)
+                            self.address += 1
+
+                        self.__advance()
+                    elif self.token.value.upper() == "ASCIIZ":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.STRING:
+                            raise TypeError(f"Expecting String, not '{self.token.type_}'")
+                        
+                        for char in self.token.value:
+                            self.data[self.address] = ord(char)
+                            self.address += 1
+                        
+                        self.data[self.address] = 0x00
+                        self.address += 1
+
+                        self.__advance()
+                case TokenType.LABEL:
+                    self.labels[self.token.value] = self.address
+                    self.__advance()
+                case TokenType.INSTRUCTION:
+                    instruction_info = DATA["instructions"][self.token.value]
+                    
+                    match instruction_info['size']:
+                        case 0:
+                            self.data[self.address] = instruction_info['opcode']
+                            self.data[self.address + 1] = 0x3F
+                            self.address += 2
+                            self.__advance()
+                        case 1:
+                            self.__advance()
+
+                            match self.token.type_:
+                                case TokenType.REGISTER:
+                                    self.data[self.address] = instruction_info['opcode']['R']
+                                    self.data[self.address + 1] = DATA["reg_lookup"][self.token.value[1]]
+                                    self.address += 2
+                                    self.__advance()
+                                case TokenType.INT:
+                                    self.data[self.address] = instruction_info['opcode']['I']
+                                    self.data[self.address + 1] = 0x3F
+                                    self.data[self.address + 2] = int(self.token.value, 16)
+                                    self.address += 3
+                                    self.__advance()
+                                case TokenType.ADDRESS:
+                                    self.data[self.address] = instruction_info['opcode']['A']
+                                    self.data[self.address + 1] = 0x3F
+                                    
+                                    value = int(self.token.value, 16)
+
+                                    self.data[self.address + 2] = (value & 0xFF00) >> 8
+                                    self.data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        self.data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                                case TokenType.IDENTIFIER:
+                                    self.data[self.address] = instruction_info['opcode']['A']
+                                    self.data[self.address + 1] = 0x3F
+                                    
+                                    if self.token.value not in self.labels:
+                                        self.data[self.address + 2] = self.token
+                                        self.data[self.address + 3] = None
+                                        
+                                        self.address += 4
+                                        self.__advance()
+                                        continue
+
+                                    value = self.labels[self.token.value]
+                                    
+                                    self.data[self.address + 2] = (value & 0xFF00) >> 8
+                                    self.data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        self.data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                        case 2:
+                            self.__advance()
+                            self.__advance()
+                            self.__advance()
                 case _:
                     self.__advance()
     
@@ -252,3 +373,16 @@ if __name__ == "__main__":
 
     assembler = Assembler(res)
     assembler.assemble()
+
+    post_op = b""
+
+    for item in assembler.data:
+        print(item)
+        if isinstance(item, Token) or item is None:
+            post_op += bytes(0xFF)
+            continue
+
+        post_op += bytes(item)
+    
+    with open("gen/hello_world_new.bin", "wb") as f:
+        f.write(post_op)
