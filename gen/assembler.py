@@ -411,10 +411,10 @@ class Assembler:
         return data
     
 if __name__ == "__main__":
-    # print(sys.argv)
-    # sys.argv.pop(0)
+    print(sys.argv)
+    sys.argv.pop(0)
 
-    with open("gen/hello_world.8do", "r") as f: # sys.argv[0]
+    with open(sys.argv[0], "r") as f:
         text = f.read()
 
     lp = LexerParser(text)
@@ -456,5 +456,5 @@ if __name__ == "__main__":
             
         post_op.append(item)
     
-    with open("gen/hello_world_new.bin", "wb") as f:
+    with open(sys.argv[0].replace(".8do", ".bin"), "wb") as f:
         f.write(bytes(post_op))
