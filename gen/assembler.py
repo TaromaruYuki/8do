@@ -39,502 +39,422 @@ DATA = {
         "RTI": {"size": 0, "opcode": 0x0F}
     },
     "registers": ["RA", "RB", "RC", "RD", "RO"],
-    "keywords": [".ORG", ".WORD", ".BYTE", ".ASCII", ".ASCIIZ"]
+    "reg_lookup": {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4},
+    "keywords": ["ORG", "WORD", "BYTE", "ASCII", "ASCIIZ"]
 }
 
-def assemble(file):
-    with open(file, "r") as f:
-        text = f.read()
-    
-    result = [0x00 for _ in range(0x7FFF + 1)]
-    addr = 0x00000
-    comment = False
-    org = False
-    instruction = False
-    iword = False
-    ibyte = False
-    ascii_ = False
-    z = False
-    name = ""
-    new = []
-    nametable = {}
-    key = ""
-    temp = None
-    
-    for line in text.split("\n"):
-        line += "\n"
-        for word in line.split(" "):
-            if word == "" or word == "\n" or word == "\t":
-                continue
-        
-            if word[0] == ";":
-                comment = True
-        
-            if comment:
-                if word[-1] == "\n":
-                    comment = False
-                continue
-        
-            new.append(word.replace("\n", "").replace("\t", ""))
-            
-    new.append(" ")
-        
-    for word in new:
-        if org:
-            addr = int(word.replace("$", ""), 16)
-            org = False
-            continue
-        
-        if iword:
-            if word[0] == "$":
-                value = int(word.replace("$", ""), 16)
-                result[addr] = (value >> 8)
-                result[addr + 1] = value & 0xFF
+import sys
+from enum import Enum
+from dataclasses import dataclass
+from string import hexdigits, ascii_letters, whitespace
+
+class TokenType(Enum):
+    INT = 0 # !
+    IDENTIFIER = 1 # !
+    KEYWORD = 2 # !
+    REGISTER = 3 # !
+    LABEL = 4 # !
+    DIRECTIVE = 5 # !
+    INSTRUCTION = 6 # !
+    ADDRESS = 7 # !
+    POINTER = 8 # !
+    REFERENCE = 9 # !
+    OFFSET = 10 # !
+    STRING = 11 # !
+
+@dataclass
+class Token:
+    type_: TokenType
+    value: str
+
+    def __repr__(self):
+        return f"{self.type_.name}:{self.value}"
+
+class LexerParser:
+    def __init__(self, text: str):
+        self.text = text
+        self.current_char = None
+        self.position = -1
+        self.__advance()
+
+    def __advance(self):
+        self.position += 1
+        self.current_char = self.text[self.position] if self.position < len(self.text) else None
+
+    def tokenize(self):
+        tokens = []
+
+        while self.current_char is not None:
+            if self.current_char == '0':
+                self.__advance()
+                if self.current_char is None or self.current_char not in "xX":
+                    return None, "Expected 'x' or 'X'"
+                
+                self.__advance()
+                
+                tokens.append(self.__make_number())
+            elif self.current_char == '$':
+                self.__advance()
+                token = self.__make_number()
+                token.type_ = TokenType.ADDRESS
+                tokens.append(token)
+            elif self.current_char == '.':
+                self.__advance()
+                token = self.__make_identifier_or_keyword_or_register_or_instruction()
+                if token.type_ != TokenType.KEYWORD: 
+                    return None, f"Expected directive, not '{token.value}'"
+                token.type_ = TokenType.DIRECTIVE
+
+                tokens.append(token)
+            elif self.current_char == ':':
+                self.__advance()
+                if len(tokens) == 0:
+                    return None, "No label name given, only found ':'."
+
+                name: Token = tokens[-1]
+                
+                if name.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'!"
+
+                name.type_ = TokenType.LABEL
+
+                tokens[-1] = name
+            elif self.current_char == '"':
+                self.__advance()
+                tokens.append(self.__make_string())
+            elif self.current_char == '&':
+                self.__advance()
+                ref = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if ref.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                ref.type_ = TokenType.REFERENCE
+
+                tokens.append(ref)
+            elif self.current_char == '*':
+                self.__advance()
+                pointer = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if pointer.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                pointer.type_ = TokenType.POINTER
+
+                tokens.append(pointer)
+            elif self.current_char == '>':
+                self.__advance()
+                pointer = self.__make_identifier_or_keyword_or_register_or_instruction()
+
+                if pointer.type_ != TokenType.IDENTIFIER:
+                    return None, f"Expected Identifier, found '{name.value}'"
+
+                pointer.type_ = TokenType.OFFSET
+
+                tokens.append(pointer)
+            elif self.current_char in whitespace:
+                self.__advance()
+            elif self.current_char in ascii_letters + "_":
+                tokens.append(self.__make_identifier_or_keyword_or_register_or_instruction())
             else:
-                if nametable.get(word):
-                    value = nametable[word]
-                    result[addr] = (value >> 8)
-                    result[addr + 1] = value & 0xFF
-                else:
-                    result[addr] = word
-                    result[addr + 1] = None
-            addr += 2
-            iword = False
-            continue
+                self.__advance()
+
+        return tokens, None
+
+    def __make_number(self) -> Token:
+        num = ""
+
+        while self.current_char is not None and self.current_char in hexdigits:
+            num += self.current_char
+            self.__advance()
+
+        return Token(TokenType.INT, num)
+
+    def __make_identifier_or_keyword_or_register_or_instruction(self) -> Token:
+        word = ""
+
+        while self.current_char is not None and self.current_char in ascii_letters + "_":
+            word += self.current_char
+            self.__advance()
+
+        if word in DATA['keywords']:
+            return Token(TokenType.KEYWORD, word)
+        elif word in DATA['registers']:
+            return Token(TokenType.REGISTER, word)
+        elif word in DATA['instructions']:
+            return Token(TokenType.INSTRUCTION, word)
+        else:
+            return Token(TokenType.IDENTIFIER, word)
         
-        if ibyte:
-            value = int(word.replace("0x", ""), 16)
-            result[addr] = value
-            addr += 1
-            ibyte = False
-            continue
-        
-        if ascii_:
-            escaped = False
-            escape_seqs = {"n": "\n", "\\": "\\", "\"": "\""}
+    def __make_string(self) -> Token:
+        string = ""
+        escaped = False
 
-            if word == "\"":
-                if z:
-                    result[addr] = 0x00
-                    addr += 1
-                    z = False
-                ascii_ = False
-                continue
-            
-            if word[0] == '"':
-                word = word[1:]
-                
-            for char in word:
-                if not escaped and char == "\"":
-                    if z:
-                        result[addr] = 0x00
-                        addr += 1
-                        z = False
-                    ascii_ = False
-                    break
-                
-                if escaped:
-                    result[addr] = ord(escape_seqs[char])
-                    addr += 1
-                    escaped = False
-                    continue
-
-                if not escaped and char == "\\":
-                    escaped = True
-                    continue
-                
-                result[addr] = ord(char)
-                addr += 1
-
-            if ascii_:
-                result[addr] = ord(" ")
-                addr += 1
-            
-            continue
-        
-        if instruction:
-            if (word.upper() in DATA["instructions"] and not key) or word == " ":
-                result[addr] = DATA["instructions"][name]["opcode"]
-                result[addr + 1] = 0x3F
-                addr += 2
-                name = word.upper()
-                continue
-            
-            if word in DATA["keywords"]:
-                result[addr] = DATA["instructions"][name]["opcode"]
-                result[addr + 1] = 0x3F
-                addr += 2
-                
-                if word.upper() == ".ORG":
-                    instruction = False
-                    org = True
-                    continue
-                elif word.upper() == ".WORD":
-                    instruction = False
-                    iword = True
-                    continue
-                elif word.upper() == ".BYTE":
-                    instruction = False
-                    ibyte = True
-                    continue
-                elif word.upper() == ".ASCII":
-                    instruction = False
-                    ascii_ = True
-                    continue
-                elif word.upper() == ".ASCIIZ":
-                    instruction = False
-                    ascii_ = True
-                    z = True
-                    continue
-
-            if word[-1] == ":":
-                result[addr] = DATA["instructions"][name]["opcode"]
-                result[addr + 1] = 0x3F
-                addr += 2
-
-                nametable[word.replace(":", "")] = addr
-                instruction = False
-                continue
-            
-            if word.upper().replace(",", "").replace(" ", "") in DATA["registers"]:
-                key += "R"
-                
-                if len(key) == 1 and "," in word.upper():
-                    temp = word.upper()
-                    continue
-                elif len(key) == 1:
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    
-                    lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                    reg = lookup[word[1]]
-                    
-                    result[addr + 1] = reg
-                    
-                    addr += 2
-                    key = ""
-                    instruction = False
-                    continue
-                elif len(key) == 2:
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    
-                    lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                    reg1 = lookup[temp[1]]
-                    reg2 = lookup[word[1]]
-
-                    result[addr + 1] = (reg2 << 3) | reg1
-                    
-                    addr += 2
-                    key = ""
-                    temp = None
-                    instruction = False
-                    continue
-            elif word.upper()[0] == "$":
-                key += "A"
-                
-                if len(key) == 2:
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    
-                    lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                    reg1 = lookup[temp[1]]
-
-                    result[addr + 1] = reg1
-
-                    value = int(word.replace("$", ""), 16)
-
-                    if value > 0xFFFF:
-                        result[addr + 1] |= (value & 0x30000) >> 10;
-                    
-                    result[addr + 2] = (value >> 8) & 0xFF
-                    result[addr + 3] = value & 0xFF
-                    
-                    addr += 4
-                    key = ""
-                    temp = None
-                    instruction = False
-                    continue
-                
-                result[addr] = DATA["instructions"][name]["opcode"][key]
-                result[addr + 1] = 0x3F
-                
-                value = int(word.replace("$", ""), 16)
-                
-                if value > 0xFFFF:
-                    result[addr + 1] |= (value & 0x30000) >> 10;
-                
-                result[addr + 2] = (value >> 8)
-                result[addr + 3] = value & 0xFF
-                
-                addr += 4
-                key = ""
-                instruction = False
-                continue
-            elif word.upper()[0] == ">":
-                key += "P" # Pointer. Can be a memory address like $, a label, or a register.
-
-                if len(key) == 2:
-                    if word.replace(">", "") in DATA["registers"]:
-                        pass
-                    elif not word.upper()[1] == "$": # Label
-                        if (word.upper()[1:] in nametable): 
-                            result[addr] = DATA["instructions"][name]["opcode"][key]
-                        
-                            if temp:
-                                lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                                reg1 = lookup[temp[1]]
-                        
-                                result[addr + 1] = reg1
-                            else:
-                                result[addr + 1] = 0x3F
-                        
-                            value = nametable[word]
-                        
-                            if value > 0xFFFF:
-                                result[addr + 1] |= (value & 0x30000) >> 10;
-                        
-                            result[addr + 2] = (value >> 8) & 0xFF
-                            result[addr + 3] = value & 0xFF
-                        
-                            addr += 4
-                            key = ""
-                            temp = None
-                            instruction = False
-                            continue
-
-                        result[addr] = DATA["instructions"][name]["opcode"][key]
-                        
-                        if temp:
-                            lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                            reg1 = lookup[temp[1]]
-                        
-                            result[addr + 1] = reg1
-                        else:
-                            result[addr + 1] = 0x3F
-                    
-                        result[addr + 2] = word.replace(">", "")
-                        result[addr + 3] = None
-                
-                        addr += 4
-                        key = ""
-                        instruction = False
-                        continue
-                        
-                    else:
-                        result[addr] = DATA["instructions"][name]["opcode"][key]
-                    
-                        lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                        reg1 = lookup[temp[1]]
-
-                        result[addr + 1] = reg1
-
-                        value = int(word.replace(">$", ""), 16)
-
-                        if value > 0xFFFF:
-                            result[addr + 1] |= (value & 0x30000) >> 10;
-                    
-                        result[addr + 2] = (value >> 8) & 0xFF
-                        result[addr + 3] = value & 0xFF
-                    
-                        addr += 4
-                        key = ""
-                        temp = None
-                        instruction = False
-                        continue
-                if not word.upper()[1] == "$": # Label
-                    if (word.upper()[1:] in nametable): 
-                        result[addr] = DATA["instructions"][name]["opcode"][key]
-                        result[addr + 1] = 0x3F
-                    
-                        value = nametable[word]
-                    
-                        result[addr + 2] = (value >> 8)
-                        result[addr + 3] = value & 0xFF
-                    
-                        addr += 4
-                        key = ""
-                        instruction = False
-                        continue
-
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                        
-                    if temp:
-                        lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                        reg1 = lookup[temp[1]]
-                        
-                        result[addr + 1] = reg1
-                    else:
-                        result[addr + 1] = 0x3F
-                    
-                    result[addr + 2] = word.replace(">", "")
-                    result[addr + 3] = None
-                
-                    addr += 4
-                    key = ""
-                    instruction = False
-                    continue
-                else:
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    result[addr + 1] = 0x3F
-                
-                    value = int(word.replace("$", ""), 16)
-                
-                    if value > 0xFFFF:
-                        result[addr + 1] |= (value & 0x30000) >> 10;
-                
-                    result[addr + 2] = (value >> 8)
-                    result[addr + 3] = value & 0xFF
-                
-                    addr += 4
-                    key = ""
-                    instruction = False
-                    continue
-            elif "0x" in word:
-                key += "I"
-                
-                if len(key) == 2:
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    
-                    lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                    reg1 = lookup[temp[1]]
-
-                    result[addr + 1] = reg1
-
-                    value = int(word.replace("0x", ""), 16)
-                    
-                    result[addr + 2] = value
-                
-                    addr += 3
-                    key = ""
-                    temp = None
-                    instruction = False
-                    continue
-                
-                result[addr] = DATA["instructions"][name]["opcode"][key]
-                result[addr + 1] = 0x3F
-                
-                value = int(word.replace("0x", ""), 16)
-                
-                result[addr + 2] = value
-                
-                addr += 3
-                key = ""
-                instruction = False
-                continue
-            elif word.upper()[0] == "&":
-                key += "D"
-
-                
-            else:
-                key += "A"
-                
-                if word in nametable:
-                    if len(key) == 2:
-                        result[addr] = DATA["instructions"][name]["opcode"][key]
-                        
-                        if temp:
-                            lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                            reg1 = lookup[temp[1]]
-                        
-                            result[addr + 1] = reg1
-                        else:
-                            result[addr + 1] = 0x3F
-                        
-                        value = nametable[word]
-                        
-                        if value > 0xFFFF:
-                            result[addr + 1] |= (value & 0x30000) >> 10;
-                        
-                        result[addr + 2] = (value >> 8) & 0xFF
-                        result[addr + 3] = value & 0xFF
-                        
-                        addr += 4
-                        key = ""
-                        temp = None
-                        instruction = False
-                        continue
-                    
-                    result[addr] = DATA["instructions"][name]["opcode"][key]
-                    result[addr + 1] = 0x3F
-                    
-                    value = nametable[word]
-                    
-                    result[addr + 2] = (value >> 8)
-                    result[addr + 3] = value & 0xFF
-                    
-                    addr += 4
-                    key = ""
-                    instruction = False
-                    continue
-        
-                result[addr] = DATA["instructions"][name]["opcode"][key]
-                        
-                if temp:
-                    lookup = {"A": 0, "B": 1, "C": 2, "D": 3, "O": 4}
-                    reg1 = lookup[temp[1]]
-                        
-                    result[addr + 1] = reg1
-                else:
-                    result[addr + 1] = 0x3F
-                    
-                result[addr + 2] = word
-                result[addr + 3] = None
-                
-                addr += 4
-                key = ""
-                instruction = False
+        while self.current_char is not None:
+            if escaped:
+                string += self.current_char
+                escaped = False
                 continue
 
-        if word.upper() == ".ORG":
-            org = True
-            continue
-        elif word.upper() == ".WORD":
-            iword = True
-            continue
-        elif word.upper() == ".BYTE":
-            ibyte = True
-            continue
-        elif word.upper() == ".ASCII":
-            ascii_ = True
-            continue
-        elif word.upper() == ".ASCIIZ":
-            ascii_ = True
-            z = True
-            continue
-        elif word[-1] == ":":
-            nametable[word.replace(":", "")] = addr
-            continue
-        
-        if word.upper() in DATA["instructions"]:
-            instruction = True
-            name = word.upper()
-            continue
+            if self.current_char == '"':
+                self.__advance()
+                break
 
-        if word == " ":
-            continue
+            string += self.current_char
+            self.__advance()
 
-        print(f"\"{word}\" is invalid.")
-        exit(1)
-        
-    for i, byte in enumerate(result):
-        if isinstance(byte, str):
-            if not (byte in nametable):
-                print(f"Error: \"{byte}\" not found in nametable. Address: {hex(i)}")
-                exit(1)
+        return Token(TokenType.STRING, string)
 
-            value = nametable[byte]
+class Assembler:
+    def __init__(self, tokens: list[Token]):
+        self.tokens = tokens
+        self.position = -1
+        self.token = None
+        self.__advance()
 
-            if value > 0xFFFF:
-                result[i - 1] |= (value & 0x30000) >> 10;
-                
-            result[i] = (value >> 8) & 0xFF
-            result[i + 1] = (value & 0xFF)
-            continue
-        elif byte is None:
-            exit(1)
+        self.address = 0
+        self.labels = {}
+
+    def __advance(self):
+        self.position += 1
+        self.token = self.tokens[self.position] if self.position < len(self.tokens) else None
+
+    def assemble(self):
+        data = [0x00 for _ in range(0x7FFF + 1)]
+        while self.token is not None:
+            match self.token.type_:
+                case TokenType.DIRECTIVE:
+                    if self.token.value.upper() == "ORG":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.ADDRESS:
+                            raise TypeError(f"Expecting Address, not '{self.token.type_}'")
+                        
+                        self.address = int(self.token.value, 16)
+                        self.__advance()
+                    elif self.token.value.upper() == "BYTE":
+                        self.__advance()
+                        
+                        if self.token.type_ != TokenType.INT:
+                            raise TypeError(f"Expecting Int, not '{self.token.type_}'")
+                        
+                        data[self.address] = int(self.token.value, 16)
+                        self.address += 1
+                        self.__advance()
+                    elif self.token.value.upper() == "WORD":
+                        self.__advance()
+                        
+                        match self.token.type_:
+                            case TokenType.ADDRESS:
+                                value = int(self.token.value, 16)
+                        
+                                data[self.address] = (value & 0xFF00) >> 8
+                                data[self.address + 1] = value & 0xFF
+                                self.address += 2
+                                self.__advance()
+                            case TokenType.IDENTIFIER:
+                                data[self.address] = self.token
+                                data[self.address + 1] = None
+                                self.address += 2
+                                self.__advance()
+                            case _:
+                                raise TypeError(f"Expecting Address or Identifier, not '{self.token.type_}'")
+                    elif self.token.value.upper() == "ASCII":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.STRING:
+                            raise TypeError(f"Expecting String, not '{self.token.type_}'")
+                        
+                        for char in self.token.value:
+                            data[self.address] = ord(char)
+                            self.address += 1
+
+                        self.__advance()
+                    elif self.token.value.upper() == "ASCIIZ":
+                        self.__advance()
+
+                        if self.token.type_ != TokenType.STRING:
+                            raise TypeError(f"Expecting String, not '{self.token.type_}'")
+                        
+                        for char in self.token.value:
+                            data[self.address] = ord(char)
+                            self.address += 1
+                        
+                        data[self.address] = 0x00
+                        self.address += 1
+
+                        self.__advance()
+                case TokenType.LABEL:
+                    self.labels[self.token.value] = self.address
+                    self.__advance()
+                case TokenType.INSTRUCTION:
+                    instruction_info = DATA["instructions"][self.token.value]
+                    
+                    match instruction_info['size']:
+                        case 0:
+                            data[self.address] = instruction_info['opcode']
+                            data[self.address + 1] = 0x3F
+                            self.address += 2
+                            self.__advance()
+                        case 1:
+                            self.__advance()
+
+                            match self.token.type_:
+                                case TokenType.REGISTER:
+                                    data[self.address] = instruction_info['opcode']['R']
+                                    data[self.address + 1] = DATA["reg_lookup"][self.token.value[1]]
+                                    self.address += 2
+                                    self.__advance()
+                                case TokenType.INT:
+                                    data[self.address] = instruction_info['opcode']['I']
+                                    data[self.address + 1] = 0x3F
+                                    data[self.address + 2] = int(self.token.value, 16)
+                                    self.address += 3
+                                    self.__advance()
+                                case TokenType.ADDRESS:
+                                    data[self.address] = instruction_info['opcode']['A']
+                                    data[self.address + 1] = 0x3F
+                                    
+                                    value = int(self.token.value, 16)
+
+                                    data[self.address + 2] = (value & 0xFF00) >> 8
+                                    data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                                case TokenType.IDENTIFIER:
+                                    data[self.address] = instruction_info['opcode']['A']
+                                    data[self.address + 1] = 0x3F
+                                    
+                                    if self.token.value not in self.labels:
+                                        data[self.address + 2] = self.token
+                                        data[self.address + 3] = None
+                                        
+                                        self.address += 4
+                                        self.__advance()
+                                        continue
+
+                                    value = self.labels[self.token.value]
+                                    
+                                    data[self.address + 2] = (value & 0xFF00) >> 8
+                                    data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                        case 2:
+                            self.__advance()
+
+                            if self.token.type_ != TokenType.REGISTER:
+                                raise TypeError(f"Expecting Register, not '{self.token.type_}'")
+                            
+                            metadata = DATA["reg_lookup"][self.token.value[1]]
+
+                            self.__advance()
+
+                            match self.token.type_:
+                                case TokenType.REGISTER:
+                                    data[self.address] = instruction_info['opcode']['RR']
+                                    data[self.address + 1] = metadata | (DATA["reg_lookup"][self.token.value[1]] << 3)
+                                    self.address += 2
+                                    self.__advance()
+                                case TokenType.INT:
+                                    data[self.address] = instruction_info['opcode']['RI']
+                                    data[self.address + 1] = metadata
+                                    data[self.address + 2] = int(self.token.value, 16)
+                                    self.address += 3
+                                    self.__advance()
+                                case TokenType.ADDRESS:
+                                    data[self.address] = instruction_info['opcode']['RA']
+                                    data[self.address + 1] = metadata
+                                    
+                                    value = int(self.token.value, 16)
+
+                                    data[self.address + 2] = (value & 0xFF00) >> 8
+                                    data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                                case TokenType.IDENTIFIER:
+                                    data[self.address] = instruction_info['opcode']['RA']
+                                    data[self.address + 1] = metadata
+                                    
+                                    if self.token.value not in self.labels:
+                                        data[self.address + 2] = self.token
+                                        data[self.address + 3] = None
+                                        
+                                        self.address += 4
+                                        self.__advance()
+                                        continue
+
+                                    value = self.labels[self.token.value]
+                                    
+                                    data[self.address + 2] = (value & 0xFF00) >> 8
+                                    data[self.address + 3] = value & 0xFF
+
+                                    if value > 0xFFFF:
+                                        data[self.address + 1] |= (value & 0x30000) >> 10
+
+                                    self.address += 4
+                                    self.__advance()
+                case _:
+                    self.__advance()
+
+        return data
     
-    with open(file.replace(".8do", ".bin"), "wb") as f:
-        f.write(bytes(result))
-
 if __name__ == "__main__":
-    import sys
-    # assemble(sys.argv[1])
-    assemble("gen/hello_world.8do")
+    # print(sys.argv)
+    # sys.argv.pop(0)
+
+    with open("gen/hello_world.8do", "r") as f: # sys.argv[0]
+        text = f.read()
+
+    lp = LexerParser(text)
+    res, error = lp.tokenize()
+
+    if error:
+        print(error)
+        exit(1)
+
+    for item in res:
+        print(item)
+
+    assembler = Assembler(res)
+    data = assembler.assemble()
+
+    print(hex(assembler.address))
+    print(assembler.labels)
+
+    post_op = []
+
+    for i, item in enumerate(data):
+        if isinstance(item, Token):
+            if item.type_ != TokenType.IDENTIFIER:
+                raise TypeError("Unknown Token in return data.")
+            
+            if item.value not in assembler.labels:
+                raise ValueError(f"Label '{item.value}' not found in labels.")
+            
+            address = assembler.labels[item.value]
+
+            post_op.append((address & 0xFF00) >> 8)
+            post_op.append(address & 0xFF)
+            continue
+        elif item is None:
+            if len(post_op) == i + 1:
+                continue
+
+            raise ValueError(f"Unknown None at position {i}")
+            
+        post_op.append(item)
+    
+    with open("gen/hello_world_new.bin", "wb") as f:
+        f.write(bytes(post_op))
